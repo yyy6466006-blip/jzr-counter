@@ -1,0 +1,1194 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="禾家器材行">
+<title>禾家器材行 管理系統</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&family=Noto+Serif+TC:wght@600;700&display=swap');
+:root {
+  --green:#4a7c59; --green-light:#6a9f7a; --green-pale:#e8f2eb;
+  --amber:#c8833a; --amber-pale:#fdf3e7;
+  --blue:#2563a8; --blue-pale:#e8f0fb;
+  --red:#c0392b; --red-pale:#fdecea;
+  --yellow:#e8a020; --yellow-pale:#fff8e1;
+  --bg:#f5f0e8; --card:#fff; --text:#2c2c2c; --text2:#666;
+  --border:#e0d8cc; --shadow:0 2px 8px rgba(0,0,0,0.08); --radius:12px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Noto Sans TC',sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
+.nav{background:var(--green);color:#fff;display:flex;align-items:center;padding:0 10px;height:56px;gap:3px;position:sticky;top:0;z-index:100;box-shadow:0 2px 8px rgba(0,0,0,.15)}
+.nav-title{font-family:'Noto Serif TC',serif;font-size:17px;font-weight:700;margin-right:auto;letter-spacing:1px;white-space:nowrap}
+.nav-btn{background:rgba(255,255,255,.15);border:none;color:#fff;padding:6px 11px;border-radius:8px;cursor:pointer;font-size:12px;font-family:inherit;transition:background .2s;white-space:nowrap}
+.nav-btn:hover,.nav-btn.active{background:rgba(255,255,255,.3)}
+.nav-btn.active{font-weight:700}
+.page{display:none;padding:14px;max-width:1200px;margin:0 auto}
+.page.active{display:block}
+.card{background:var(--card);border-radius:var(--radius);box-shadow:var(--shadow);padding:15px;margin-bottom:13px;border:1px solid var(--border)}
+.card-title{font-size:15px;font-weight:700;color:var(--green);margin-bottom:12px;display:flex;align-items:center;gap:6px}
+.btn{border:none;border-radius:8px;padding:8px 14px;cursor:pointer;font-family:inherit;font-size:13px;font-weight:500;transition:all .2s}
+.btn-green{background:var(--green);color:#fff}.btn-green:hover{background:var(--green-light)}
+.btn-blue{background:var(--blue);color:#fff}.btn-blue:hover{background:#1e4f8f}
+.btn-red{background:var(--red);color:#fff}.btn-red:hover{background:#e74c3c}
+.btn-amber{background:var(--amber);color:#fff}.btn-amber:hover{background:#d4943e}
+.btn-outline{background:transparent;border:1.5px solid var(--border);color:var(--text2)}
+.btn-outline:hover{border-color:var(--green);color:var(--green)}
+.btn-sm{padding:4px 9px;font-size:12px}
+.btn-lg{padding:12px 20px;font-size:15px;width:100%}
+input,select,textarea{border:1.5px solid var(--border);border-radius:8px;padding:7px 11px;font-family:inherit;font-size:14px;width:100%;background:#fff;color:var(--text)}
+input:focus,select:focus{outline:none;border-color:var(--green)}
+label{font-size:13px;color:var(--text2);margin-bottom:3px;display:block}
+.badge{display:inline-block;padding:2px 8px;border-radius:20px;font-size:11px;font-weight:700}
+.badge-red{background:var(--red-pale);color:var(--red)}
+.badge-yellow{background:var(--yellow-pale);color:var(--yellow)}
+.badge-green{background:var(--green-pale);color:var(--green)}
+.badge-blue{background:var(--blue-pale);color:var(--blue)}
+.badge-gray{background:#f0f0f0;color:#888}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:13px}
+.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:11px}
+.grid4{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{background:var(--green-pale);color:var(--green);font-weight:700;padding:9px 11px;text-align:left;font-size:12px}
+td{padding:8px 11px;border-bottom:1px solid var(--border)}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:#fafaf8}
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:999;align-items:center;justify-content:center}
+.modal-overlay.open{display:flex}
+.modal{background:#fff;border-radius:16px;padding:22px;width:92%;max-width:500px;box-shadow:0 20px 60px rgba(0,0,0,.2);max-height:90vh;overflow-y:auto}
+.modal h3{font-size:17px;font-weight:700;margin-bottom:14px;color:var(--green)}
+.modal-actions{display:flex;gap:8px;margin-top:18px;justify-content:flex-end}
+.alert{padding:10px 14px;border-radius:10px;margin-bottom:10px;font-size:13px;display:flex;align-items:flex-start;gap:8px}
+.alert-red{background:var(--red-pale);color:var(--red);border-left:4px solid var(--red)}
+.alert-yellow{background:var(--yellow-pale);color:#a06010;border-left:4px solid var(--yellow)}
+.alert-green{background:var(--green-pale);color:var(--green);border-left:4px solid var(--green)}
+.alert-blue{background:var(--blue-pale);color:var(--blue);border-left:4px solid var(--blue)}
+
+/* ── SALE ── */
+.sale-layout{display:grid;grid-template-columns:1fr 340px;gap:13px}
+.product-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(125px,1fr));gap:9px}
+.product-card{background:#fff;border:1.5px solid var(--border);border-radius:10px;padding:11px;cursor:pointer;text-align:center;transition:all .15s;user-select:none}
+.product-card:hover{border-color:var(--green);background:var(--green-pale);transform:translateY(-1px)}
+.product-card:active{transform:scale(.97)}
+.product-card.out-of-stock{opacity:.4;pointer-events:none}
+.product-name{font-size:12px;font-weight:700;margin-bottom:3px}
+.product-price{font-size:14px;color:var(--green);font-weight:700}
+.product-stock{font-size:11px;color:var(--text2);margin-top:2px}
+.cat-tabs{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px}
+.cat-tab{padding:5px 13px;border-radius:20px;border:1.5px solid var(--border);background:#fff;cursor:pointer;font-size:12px;transition:all .2s}
+.cat-tab.active{background:var(--green);color:#fff;border-color:var(--green)}
+.cart-item{display:flex;align-items:center;gap:7px;padding:7px 0;border-bottom:1px solid var(--border)}
+.cart-item-name{flex:1;font-size:12px;font-weight:500}
+.qty-btn{width:24px;height:24px;border:1.5px solid var(--border);border-radius:6px;background:#fff;cursor:pointer;font-size:14px;display:flex;align-items:center;justify-content:center;font-weight:700}
+.qty-btn:hover{border-color:var(--green);color:var(--green)}
+.cart-price{font-size:12px;color:var(--green);font-weight:700;min-width:56px;text-align:right}
+.cart-total{font-size:20px;font-weight:700;color:var(--green);text-align:right;padding:10px 0}
+
+
+/* ── STAT ── */
+.stat-box{background:var(--card);border-radius:var(--radius);padding:14px;border:1px solid var(--border);text-align:center}
+.stat-val{font-size:24px;font-weight:700;color:var(--green)}
+.stat-label{font-size:12px;color:var(--text2);margin-top:3px}
+
+/* ── PUNCH ── */
+.punch-name-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(110px,1fr));gap:9px}
+.punch-name-btn{background:var(--card);border:2px solid var(--border);border-radius:10px;padding:13px;cursor:pointer;text-align:center;font-size:14px;font-weight:700;transition:all .2s}
+.punch-name-btn:hover{border-color:var(--green);background:var(--green-pale)}
+.punch-record{display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid var(--border);font-size:13px}
+
+#stock-alert-bar{display:none;background:var(--red-pale);border-bottom:2px solid var(--red);padding:8px 16px;font-size:13px;color:var(--red);cursor:pointer}
+#stock-alert-bar.show{display:block}
+#toast{position:fixed;bottom:22px;left:50%;transform:translateX(-50%) translateY(80px);background:#2c2c2c;color:#fff;padding:9px 18px;border-radius:20px;font-size:13px;z-index:9999;opacity:0;transition:all .3s;pointer-events:none}
+#toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+
+.ltc-tag{background:var(--blue);color:#fff;font-size:10px;border-radius:4px;padding:1px 5px;margin-left:4px}
+.case-row{display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border);gap:8px}
+.case-info{flex:1}
+.case-name{font-weight:700;font-size:14px}
+.case-meta{font-size:12px;color:var(--text2)}
+.tab-bar{display:flex;border-bottom:2px solid var(--border);margin-bottom:14px}
+.tab{padding:8px 16px;cursor:pointer;font-size:13px;font-weight:500;color:var(--text2);border-bottom:3px solid transparent;margin-bottom:-2px}
+.tab.active{color:var(--green);border-bottom-color:var(--green)}
+
+@media(max-width:768px){
+  .sale-layout{grid-template-columns:1fr}
+  .grid2,.grid4{grid-template-columns:1fr 1fr}
+  .grid3{grid-template-columns:1fr 1fr}
+  .nav-title{font-size:14px}
+  .nav-btn{padding:5px 7px;font-size:11px}
+}
+</style>
+</head>
+<body>
+
+<div id="stock-alert-bar" onclick="showPage('stock')">⚠️ <span id="stock-alert-msg"></span> — 點此查看庫存</div>
+
+<nav class="nav">
+  <span class="nav-title">🌾 禾家器材行</span>
+  <button class="nav-btn active" onclick="showPage('sale')">💰 銷售</button>
+  <button class="nav-btn" onclick="showPage('cases')">👤 個案</button>
+  <button class="nav-btn" onclick="showPage('stock')">📦 庫存</button>
+  <button class="nav-btn" onclick="showPage('report')">📊 報表</button>
+  <button class="nav-btn" onclick="showPage('punch')">⏰ 打卡</button>
+  <button class="nav-btn" onclick="showPage('settings')">⚙️ 設定</button>
+</nav>
+
+<div id="toast"></div>
+
+<!-- ══════════ SALE ══════════ -->
+<div id="page-sale" class="page active">
+  <div class="sale-layout">
+    <div>
+      <div class="card">
+        <div style="display:flex;gap:8px;margin-bottom:11px;flex-wrap:wrap;align-items:center">
+          <input type="text" id="search-input" placeholder="搜尋商品..." style="flex:1;min-width:130px" oninput="renderProducts()">
+          <select id="promo-select" style="width:auto" onchange="renderCart()">
+            <option value="">無活動</option>
+          </select>
+        </div>
+        <div class="cat-tabs" id="cat-tabs"></div>
+        <div class="product-grid" id="product-grid"></div>
+      </div>
+    </div>
+
+    <div>
+      <div class="card" style="position:sticky;top:62px">
+        <div class="card-title">🛒 購物車
+          <button class="btn btn-outline btn-sm" style="margin-left:auto" onclick="clearCart()">一鍵清空</button>
+        </div>
+        <div id="cart-items" style="max-height:300px;overflow-y:auto"></div>
+        <div id="cart-promo-info" style="font-size:12px;color:var(--amber);margin:5px 0"></div>
+        <div id="cart-pay-preview"></div>
+        <div class="cart-total" id="cart-total">總計：$0</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-bottom:7px">
+          <button class="btn btn-red" onclick="openReturnModal()">↩️ 退貨</button>
+          <button class="btn btn-green btn-lg" style="margin:0" onclick="openCheckout()">結帳</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════ CASES ══════════ -->
+<div id="page-cases" class="page">
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:13px;flex-wrap:wrap;gap:8px">
+    <h2 style="font-size:17px;font-weight:700;color:var(--green)">👤 長照個案管理</h2>
+    <div style="display:flex;gap:8px">
+      <input type="text" id="case-search" placeholder="搜尋姓名/電話..." style="width:180px" oninput="renderCases()">
+      <button class="btn btn-blue" onclick="openCaseModal()">＋ 新增個案</button>
+    </div>
+  </div>
+  <div class="grid2">
+    <div>
+      <div id="case-list"></div>
+    </div>
+    <div>
+      <div class="card" id="case-detail-card" style="display:none">
+        <div class="card-title" id="case-detail-title">個案詳細</div>
+        <div id="case-detail-body"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════ STOCK ══════════ -->
+<div id="page-stock" class="page">
+  <div style="display:flex;gap:9px;margin-bottom:13px;flex-wrap:wrap;align-items:center">
+    <h2 style="font-size:17px;font-weight:700;color:var(--green)">📦 庫存管理</h2>
+    <input type="text" id="stock-search" placeholder="搜尋品項..." style="width:180px" oninput="renderStock()">
+    <button class="btn btn-green btn-sm" style="margin-left:auto" onclick="openAdjustModal()">手動調整庫存</button>
+  </div>
+  <div id="stock-alerts-area"></div>
+  <div class="card">
+    <table>
+      <thead><tr><th>品項名稱</th><th>分類</th><th>庫存</th><th>警戒值</th><th>狀態</th></tr></thead>
+      <tbody id="stock-tbody"></tbody>
+    </table>
+  </div>
+</div>
+
+<!-- ══════════ REPORT ══════════ -->
+<div id="page-report" class="page">
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:13px;flex-wrap:wrap;gap:9px">
+    <h2 style="font-size:17px;font-weight:700;color:var(--green)">📊 銷售報表</h2>
+    <div style="display:flex;gap:7px;flex-wrap:wrap">
+      <input type="date" id="report-start" style="width:145px">
+      <input type="date" id="report-end" style="width:145px">
+      <button class="btn btn-green btn-sm" onclick="renderReport()">查詢</button>
+      <button class="btn btn-amber btn-sm" onclick="requirePassword('export',exportBackup)">匯出備份</button>
+      <button class="btn btn-outline btn-sm" onclick="importBackup()">還原備份</button>
+      <input type="file" id="import-file" accept=".json" style="display:none" onchange="doImport(event)">
+    </div>
+  </div>
+
+  <!-- Tab -->
+  <div class="tab-bar">
+    <div class="tab active" onclick="switchReportTab('general',this)">一般銷售</div>
+    <div class="tab" onclick="switchReportTab('ltc',this)">♿ 長照銷售</div>
+  </div>
+
+  <!-- General -->
+  <div id="report-general">
+    <div class="grid4" style="margin-bottom:13px">
+      <div class="stat-box"><div class="stat-val" id="r-today-amount">$0</div><div class="stat-label">今日銷售額</div></div>
+      <div class="stat-box"><div class="stat-val" id="r-today-count">0</div><div class="stat-label">今日筆數</div></div>
+      <div class="stat-box"><div class="stat-val" id="r-month-amount">$0</div><div class="stat-label">本月累計</div></div>
+      <div class="stat-box"><div class="stat-val" id="r-month-count">0</div><div class="stat-label">本月筆數</div></div>
+    </div>
+    <div class="grid2">
+      <div class="card">
+        <div class="card-title">🏆 銷售排行（自訂區間）</div>
+        <table><thead><tr><th>#</th><th>品項</th><th>數量</th><th>金額</th></tr></thead>
+        <tbody id="rank-tbody"></tbody></table>
+      </div>
+      <div class="card">
+        <div class="card-title">📋 銷售紀錄</div>
+        <div style="max-height:360px;overflow-y:auto">
+          <table><thead><tr><th>時間</th><th>金額</th><th>類型</th><th>人員</th></tr></thead>
+          <tbody id="sales-log-tbody"></tbody></table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- LTC -->
+  <div id="report-ltc" style="display:none">
+    <div class="grid4" style="margin-bottom:13px">
+      <div class="stat-box"><div class="stat-val" id="ltc-today-total">$0</div><div class="stat-label">今日長照總額</div></div>
+      <div class="stat-box"><div class="stat-val" id="ltc-today-self">$0</div><div class="stat-label">個案自付（30%）</div></div>
+      <div class="stat-box"><div class="stat-val" id="ltc-today-subsidy">$0</div><div class="stat-label">政府補助（70%）</div></div>
+      <div class="stat-box"><div class="stat-val" id="ltc-today-count">0</div><div class="stat-label">今日長照筆數</div></div>
+    </div>
+    <div class="card">
+      <div class="card-title">♿ 長照訂單記錄（自訂區間）</div>
+      <div style="max-height:400px;overflow-y:auto">
+        <table><thead><tr><th>時間</th><th>類型</th><th>商品總額</th><th>本次收款</th><th>個案自付30%</th><th>政府補助70%</th><th>人員</th></tr></thead>
+        <tbody id="ltc-log-tbody"></tbody></table>
+      </div>
+    </div>
+  </div>
+
+  <div class="card" style="margin-top:0">
+    <div class="card-title">🔒 操作紀錄 <span style="font-size:12px;color:var(--text2)">(需密碼)</span>
+      <button class="btn btn-outline btn-sm" style="margin-left:auto" onclick="requirePassword('oplog',renderOpLog)">查看</button>
+    </div>
+    <div id="op-log-area" style="display:none;max-height:280px;overflow-y:auto">
+      <table><thead><tr><th>時間</th><th>人員</th><th>操作</th></tr></thead>
+      <tbody id="op-log-tbody"></tbody></table>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════ PUNCH ══════════ -->
+<div id="page-punch" class="page">
+  <div class="grid2">
+    <div class="card">
+      <div class="card-title">⏰ 上下班打卡</div>
+      <p style="font-size:13px;color:var(--text2);margin-bottom:14px">選擇姓名後點打卡</p>
+      <div class="punch-name-grid" id="punch-name-grid"></div>
+      <div id="punch-status" style="margin-top:14px;font-size:14px;color:var(--green)"></div>
+    </div>
+    <div class="card">
+      <div class="card-title">📋 今日打卡紀錄
+        <button class="btn btn-outline btn-sm" style="margin-left:auto" onclick="requirePassword('punch-all',showAllPunch)">全部</button>
+      </div>
+      <div id="punch-records"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════ SETTINGS ══════════ -->
+<div id="page-settings" class="page">
+  <div class="grid2">
+    <div class="card">
+      <div class="card-title">👥 人員名單</div>
+      <div style="display:flex;gap:8px;margin-bottom:11px">
+        <input type="text" id="new-person" placeholder="新增人員姓名">
+        <button class="btn btn-green btn-sm" onclick="addPerson()">新增</button>
+      </div>
+      <div id="person-list"></div>
+    </div>
+    <div class="card">
+      <div class="card-title">🔑 管理員密碼</div>
+      <label>現有密碼</label><input type="password" id="old-pw" style="margin-bottom:7px">
+      <label>新密碼</label><input type="password" id="new-pw" style="margin-bottom:7px">
+      <label>確認新密碼</label><input type="password" id="confirm-pw" style="margin-bottom:11px">
+      <button class="btn btn-green" onclick="changePw()">變更密碼</button>
+    </div>
+    <div class="card" style="grid-column:1/-1">
+      <div class="card-title">📦 品項管理
+        <button class="btn btn-green btn-sm" style="margin-left:auto" onclick="openProductModal()">＋ 新增品項</button>
+      </div>
+      <table><thead><tr><th>品項名稱</th><th>分類</th><th>售價</th><th>庫存</th><th>狀態</th><th>操作</th></tr></thead>
+      <tbody id="settings-product-tbody"></tbody></table>
+    </div>
+    <div class="card" style="grid-column:1/-1">
+      <div class="card-title">🎉 活動方案
+        <button class="btn btn-amber btn-sm" style="margin-left:auto" onclick="openPromoModal()">＋ 新增活動</button>
+      </div>
+      <table><thead><tr><th>活動名稱</th><th>類型</th><th>條件</th><th>日期</th><th>狀態</th><th>操作</th></tr></thead>
+      <tbody id="promo-tbody"></tbody></table>
+    </div>
+    <div class="card">
+      <div class="card-title">⚠️ 低庫存警戒值</div>
+      <label>🔴 紅色（危急）</label><input type="number" id="thresh-red" style="margin-bottom:7px" min="0">
+      <label>🟡 黃色（注意）</label><input type="number" id="thresh-yellow" style="margin-bottom:11px" min="0">
+      <button class="btn btn-green" onclick="saveThresholds()">儲存</button>
+    </div>
+    <div class="card">
+      <div class="card-title">🗂️ 分類管理</div>
+      <div style="display:flex;gap:8px;margin-bottom:11px">
+        <input type="text" id="new-cat" placeholder="新增分類名稱">
+        <button class="btn btn-green btn-sm" onclick="addCategory()">新增</button>
+      </div>
+      <div id="cat-list"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════ MODALS ══════════ -->
+
+
+<!-- Checkout Modal -->
+<div class="modal-overlay" id="modal-checkout">
+  <div class="modal" style="max-width:520px">
+    <h3>🧾 確認結帳</h3>
+    <div id="checkout-detail" style="max-height:240px;overflow-y:auto;margin-bottom:12px"></div>
+
+    <label>付款類型</label>
+    <select id="checkout-pay-type" style="margin-bottom:10px;font-size:15px;font-weight:700" onchange="updateCheckoutTotal()">
+      <option value="normal">💰 一般零售（全額）</option>
+      <option value="ltc_self">♿ 長照 — 個案自付 30%</option>
+      <option value="ltc_gov">🏛 長照 — 政府補助 70%</option>
+    </select>
+
+    <div id="checkout-pay-breakdown" style="margin-bottom:10px"></div>
+    <div style="font-size:21px;font-weight:700;text-align:right;margin-bottom:12px" id="checkout-total"></div>
+
+    <label>結帳人員</label>
+    <select id="checkout-person" style="margin-bottom:11px"></select>
+    <div class="alert alert-green" id="checkout-confirm-msg">✅ 請告知客人以上金額，確認後按「完成結帳」</div>
+    <div class="modal-actions">
+      <button class="btn btn-outline" onclick="closeModal('modal-checkout')">取消</button>
+      <button class="btn btn-green" onclick="doCheckout()">完成結帳</button>
+    </div>
+  </div>
+</div>
+
+<!-- Return Modal -->
+<div class="modal-overlay" id="modal-return">
+  <div class="modal">
+    <h3>↩️ 退貨處理</h3>
+    <label>選擇訂單</label>
+    <select id="return-order-select" style="margin-bottom:11px" onchange="showReturnDetail()"></select>
+    <div id="return-detail" style="margin-bottom:11px"></div>
+    <div class="modal-actions">
+      <button class="btn btn-outline" onclick="closeModal('modal-return')">取消</button>
+      <button class="btn btn-red" onclick="doReturn()">確認退貨（補回庫存）</button>
+    </div>
+  </div>
+</div>
+
+<!-- Adjust Stock Modal -->
+<div class="modal-overlay" id="modal-adjust">
+  <div class="modal">
+    <h3>🔧 手動調整庫存</h3>
+    <label>選擇品項</label><select id="adjust-product" style="margin-bottom:7px"></select>
+    <label>調整數量（正數補入，負數扣除）</label><input type="number" id="adjust-qty" style="margin-bottom:7px" placeholder="例：+5 或 -3">
+    <label>調整原因</label><input type="text" id="adjust-reason" placeholder="例：盤點誤差、損壞" style="margin-bottom:7px">
+    <label>操作人員</label><select id="adjust-person" style="margin-bottom:11px"></select>
+    <div class="modal-actions">
+      <button class="btn btn-outline" onclick="closeModal('modal-adjust')">取消</button>
+      <button class="btn btn-green" onclick="doAdjust()">確認調整</button>
+    </div>
+  </div>
+</div>
+
+<!-- Password Modal -->
+<div class="modal-overlay" id="modal-pw">
+  <div class="modal" style="max-width:340px">
+    <h3>🔒 請輸入管理員密碼</h3>
+    <input type="password" id="pw-input" placeholder="密碼" style="margin-bottom:11px" onkeydown="if(event.key==='Enter')checkPwModal()">
+    <div class="modal-actions">
+      <button class="btn btn-outline" onclick="closeModal('modal-pw')">取消</button>
+      <button class="btn btn-green" onclick="checkPwModal()">確認</button>
+    </div>
+  </div>
+</div>
+
+<!-- Product Modal -->
+<div class="modal-overlay" id="modal-product">
+  <div class="modal">
+    <h3 id="product-modal-title">新增品項</h3>
+    <input type="hidden" id="edit-product-id">
+    <label>品項名稱</label><input type="text" id="edit-product-name" style="margin-bottom:7px">
+    <label>分類</label><select id="edit-product-cat" style="margin-bottom:7px"></select>
+    <label>售價（元）</label><input type="number" id="edit-product-price" style="margin-bottom:7px">
+    <label>初始庫存</label><input type="number" id="edit-product-stock" style="margin-bottom:11px">
+    <div class="modal-actions">
+      <button class="btn btn-outline" onclick="closeModal('modal-product')">取消</button>
+      <button class="btn btn-green" onclick="saveProduct()">儲存</button>
+    </div>
+  </div>
+</div>
+
+<!-- Promo Modal -->
+<div class="modal-overlay" id="modal-promo">
+  <div class="modal">
+    <h3 id="promo-modal-title">新增活動</h3>
+    <input type="hidden" id="edit-promo-id">
+    <label>活動名稱</label><input type="text" id="edit-promo-name" style="margin-bottom:7px">
+    <label>活動類型</label>
+    <select id="edit-promo-type" style="margin-bottom:7px" onchange="updatePromoFields()">
+      <option value="discount">全館折扣（%）</option>
+      <option value="qty_discount">買N送1</option>
+      <option value="fixed_off">滿額折抵</option>
+    </select>
+    <div id="promo-fields"></div>
+    <label>開始日期</label><input type="date" id="edit-promo-start" style="margin-bottom:7px">
+    <label>結束日期</label><input type="date" id="edit-promo-end" style="margin-bottom:11px">
+    <div class="modal-actions">
+      <button class="btn btn-outline" onclick="closeModal('modal-promo')">取消</button>
+      <button class="btn btn-amber" onclick="savePromo()">儲存活動</button>
+    </div>
+  </div>
+</div>
+
+<!-- Case Modal -->
+<div class="modal-overlay" id="modal-case">
+  <div class="modal">
+    <h3 id="case-modal-title">新增個案</h3>
+    <input type="hidden" id="edit-case-id">
+    <label>姓名</label><input type="text" id="edit-case-name" style="margin-bottom:7px">
+    <label>電話</label><input type="text" id="edit-case-phone" style="margin-bottom:7px">
+    <label>長照等級</label>
+    <select id="edit-case-level" style="margin-bottom:11px">
+      <option value="2">第2級</option>
+      <option value="3">第3級</option>
+      <option value="4">第4級</option>
+      <option value="5">第5級</option>
+      <option value="6">第6級</option>
+      <option value="7">第7級</option>
+      <option value="8">第8級</option>
+    </select>
+    <div class="modal-actions">
+      <button class="btn btn-outline" onclick="closeModal('modal-case')">取消</button>
+      <button class="btn btn-blue" onclick="saveCase()">儲存個案</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ══════════════════════════════════════════
+//  DATA STORE
+// ══════════════════════════════════════════
+const STORE_KEY = 'hejia_pos_v2';
+function load() {
+  try { return JSON.parse(localStorage.getItem(STORE_KEY)) || defaultData(); }
+  catch { return defaultData(); }
+}
+function save(d) { localStorage.setItem(STORE_KEY, JSON.stringify(d)); }
+
+function defaultData() {
+  return {
+    password: '1234',
+    persons: ['小明', '小華', '小美'],
+    categories: ['輔助行走', '沐浴輔具', '居家照護', '其他'],
+    products: [
+      {id:1,name:'四腳拐杖',cat:'輔助行走',price:850,stock:15,hidden:false},
+      {id:2,name:'助行器',cat:'輔助行走',price:1200,stock:8,hidden:false},
+      {id:3,name:'洗澡椅',cat:'沐浴輔具',price:980,stock:12,hidden:false},
+      {id:4,name:'防滑墊',cat:'沐浴輔具',price:280,stock:25,hidden:false},
+      {id:5,name:'看護床',cat:'居家照護',price:8500,stock:3,hidden:false},
+      {id:6,name:'輪椅',cat:'輔助行走',price:4500,stock:5,hidden:false},
+    ],
+    promos: [
+      {id:1,name:'全館九折',type:'discount',value:90,start:'',end:'',active:true},
+    ],
+    cases: [], // 長照個案
+    sales: [],
+    adjustments: [],
+    oplog: [],
+    punch: [],
+    thresholds: {red:3, yellow:8},
+    nextId: 10,
+  };
+}
+let DB = load();
+
+// ══════════════════════════════════════════
+//  NAV
+// ══════════════════════════════════════════
+function showPage(p) {
+  document.querySelectorAll('.page').forEach(el=>el.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(el=>el.classList.remove('active'));
+  document.getElementById('page-'+p).classList.add('active');
+  const pages=['sale','cases','stock','report','punch','settings'];
+  document.querySelectorAll('.nav-btn')[pages.indexOf(p)]?.classList.add('active');
+  if(p==='sale') renderProducts();
+  if(p==='cases') renderCases();
+  if(p==='stock') renderStock();
+  if(p==='report') renderReport();
+  if(p==='punch') renderPunch();
+  if(p==='settings') renderSettings();
+}
+
+// ══════════════════════════════════════════
+//  SALE
+// ══════════════════════════════════════════
+let cart = [];
+let activeCategory = '全部';
+
+
+function getActivePromos() {
+  const today = new Date().toISOString().slice(0,10);
+  return DB.promos.filter(p => {
+    if(!p.active) return false;
+    if(p.start && today < p.start) return false;
+    if(p.end && today > p.end) return false;
+    return true;
+  });
+}
+
+function applyPromo(subtotal, items) {
+  const promoId = document.getElementById('promo-select')?.value;
+  const promos = promoId ? DB.promos.filter(p=>p.id==promoId&&p.active) : getActivePromos();
+  let discount=0, note='';
+  promos.forEach(p => {
+    if(p.type==='discount') {
+      const d = subtotal - Math.round(subtotal*p.value/100);
+      if(d>discount){discount=d;note=p.name+'（'+p.value+'折）';}
+    } else if(p.type==='fixed_off'&&subtotal>=(p.threshold||0)) {
+      if(p.value>discount){discount=p.value;note=p.name+'（折抵$'+p.value+'）';}
+    } else if(p.type==='qty_discount') {
+      const tq=items.reduce((s,i)=>s+i.qty,0);
+      const free=Math.floor(tq/((p.buy||2)+1));
+      if(free>0){const c=[...items].sort((a,b)=>a.price-b.price)[0];const d=c?c.price*free:0;if(d>discount){discount=d;note=p.name;}}
+    }
+  });
+  return {finalTotal:Math.max(0,subtotal-discount),discount,note};
+}
+
+function renderCategoryTabs() {
+  const cats = ['全部',...DB.categories];
+  document.getElementById('cat-tabs').innerHTML = cats.map(c=>
+    `<div class="cat-tab ${c===activeCategory?'active':''}" onclick="setCategory('${c}')">${c}</div>`
+  ).join('');
+}
+
+function setCategory(c){activeCategory=c;renderProducts();}
+
+function renderProducts() {
+  renderCategoryTabs();
+  // Fill promo select
+  const promoSel = document.getElementById('promo-select');
+  const cur = promoSel.value;
+  promoSel.innerHTML = '<option value="">無活動</option>' +
+    getActivePromos().map(p=>`<option value="${p.id}" ${p.id==cur?'selected':''}>${p.name}</option>`).join('');
+
+  const search = (document.getElementById('search-input')?.value||'').toLowerCase();
+  let products = DB.products.filter(p=>!p.hidden);
+  if(activeCategory!=='全部') products=products.filter(p=>p.cat===activeCategory);
+  if(search) products=products.filter(p=>p.name.toLowerCase().includes(search));
+
+  document.getElementById('product-grid').innerHTML = products.map(p=>{
+    const oos = p.stock<=0;
+    return `<div class="product-card ${oos?'out-of-stock':''}" onclick="addToCart(${p.id})">
+      <div class="product-name">${p.name}</div>
+      <div class="product-price">$${p.price.toLocaleString()}</div>
+      <div class="product-stock">庫存：${p.stock}</div>
+    </div>`;
+  }).join('') || '<div style="color:var(--text2);font-size:13px;padding:20px;text-align:center;">無商品</div>';
+
+  renderCart();
+}
+
+function addToCart(id) {
+  const p = DB.products.find(x=>x.id===id);
+  if(!p||p.stock<=0) return;
+  const exist = cart.find(x=>x.id===id);
+  if(exist){if(exist.qty>=p.stock){showToast('庫存不足！');return;}exist.qty++;}
+  else cart.push({id,name:p.name,price:p.price,qty:1});
+  renderCart();
+  showToast('已加入：'+p.name);
+}
+
+function changeQty(id,delta) {
+  const idx=cart.findIndex(x=>x.id===id);
+  if(idx<0)return;
+  cart[idx].qty+=delta;
+  if(cart[idx].qty<=0) cart.splice(idx,1);
+  renderCart();
+}
+
+function renderCart() {
+  const area=document.getElementById('cart-items');
+  if(!cart.length){
+    area.innerHTML='<div style="color:var(--text2);font-size:13px;padding:18px;text-align:center;">購物車空空的</div>';
+    document.getElementById('cart-total').textContent='總計：$0';
+    document.getElementById('cart-promo-info').textContent='';
+    document.getElementById('ltc-breakdown').textContent='';
+    return;
+  }
+  area.innerHTML = cart.map(item=>`
+    <div class="cart-item">
+      <div class="cart-item-name">${item.name}</div>
+      <div style="display:flex;align-items:center;gap:4px">
+        <button class="qty-btn" onclick="changeQty(${item.id},-1)">－</button>
+        <span style="min-width:20px;text-align:center;font-weight:700;font-size:13px">${item.qty}</span>
+        <button class="qty-btn" onclick="changeQty(${item.id},+1)">＋</button>
+      </div>
+      <div class="cart-price">$${(item.price*item.qty).toLocaleString()}</div>
+    </div>`).join('');
+
+  const subtotal=cart.reduce((s,i)=>s+i.price*i.qty,0);
+  const {finalTotal,discount,note}=applyPromo(subtotal,cart);
+  document.getElementById('cart-promo-info').textContent=discount>0?`🎉 ${note} 折扣：-$${discount}`:'';
+
+  document.getElementById('cart-pay-preview').innerHTML='';
+  document.getElementById('cart-total').textContent=`總計：$${finalTotal.toLocaleString()}`;
+}
+
+function clearCart(){if(!cart.length)return;if(confirm('確定要清空購物車？')){cart=[];renderCart();showToast('購物車已清空');}}
+
+
+
+// ── CHECKOUT ──
+function openCheckout() {
+  if(!cart.length){showToast('購物車是空的');return;}
+  const subtotal=cart.reduce((s,i)=>s+i.price*i.qty,0);
+  const {finalTotal,discount,note}=applyPromo(subtotal,cart);
+
+  document.getElementById('checkout-detail').innerHTML=cart.map(i=>
+    `<div style="display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid var(--border);font-size:13px">
+      <span>${i.name} × ${i.qty}</span><span>$${(i.price*i.qty).toLocaleString()}</span></div>`
+  ).join('')+(discount>0?`<div style="color:var(--amber);padding:5px 0;font-size:12px">折扣（${note}）：-$${discount.toLocaleString()}</div>`:'');
+
+  document.getElementById('checkout-pay-type').value='normal';
+  document.getElementById('checkout-person').innerHTML=DB.persons.map(p=>`<option>${p}</option>`).join('');
+  updateCheckoutTotal();
+  openModal('modal-checkout');
+}
+
+function updateCheckoutTotal() {
+  const subtotal=cart.reduce((s,i)=>s+i.price*i.qty,0);
+  const {finalTotal}=applyPromo(subtotal,cart);
+  const type=document.getElementById('checkout-pay-type').value;
+  const selfPay=Math.ceil(finalTotal*0.3);
+  const govPay=finalTotal-Math.ceil(finalTotal*0.3);
+
+  let totalEl=document.getElementById('checkout-total');
+  let bdEl=document.getElementById('checkout-pay-breakdown');
+  let msgEl=document.getElementById('checkout-confirm-msg');
+
+  if(type==='normal'){
+    bdEl.innerHTML='';
+    totalEl.innerHTML=`應收金額：<span style="color:var(--green)">$${finalTotal.toLocaleString()}</span>`;
+    msgEl.textContent='✅ 請告知客人以上金額，確認後按「完成結帳」';
+  } else if(type==='ltc_self'){
+    bdEl.innerHTML=`<div style="background:var(--blue-pale);border-radius:8px;padding:9px 12px;font-size:13px;color:var(--blue)">
+      商品總額 $${finalTotal.toLocaleString()}｜個案自付 <strong>30%</strong>｜政府補助 70%（不收）
+    </div>`;
+    totalEl.innerHTML=`向個案收款：<span style="color:var(--blue)">$${selfPay.toLocaleString()}</span>`;
+    msgEl.textContent='✅ 請告知個案應付 $'+selfPay.toLocaleString()+'（30%），確認後按「完成結帳」';
+  } else {
+    bdEl.innerHTML=`<div style="background:var(--blue-pale);border-radius:8px;padding:9px 12px;font-size:13px;color:var(--blue)">
+      商品總額 $${finalTotal.toLocaleString()}｜政府補助 <strong>70%</strong>｜個案自付 30%（不收）
+    </div>`;
+    totalEl.innerHTML=`向政府請款：<span style="color:var(--blue)">$${govPay.toLocaleString()}</span>`;
+    msgEl.textContent='✅ 政府補助款 $'+govPay.toLocaleString()+'（70%），確認後按「完成結帳」';
+  }
+}
+
+function doCheckout() {
+  const subtotal=cart.reduce((s,i)=>s+i.price*i.qty,0);
+  const {finalTotal,discount}=applyPromo(subtotal,cart);
+  const person=document.getElementById('checkout-person').value;
+  const type=document.getElementById('checkout-pay-type').value;
+  const selfPay=Math.ceil(finalTotal*0.3);
+  const govPay=finalTotal-selfPay;
+  const now=new Date().toISOString();
+  const orderId='ORD-'+Date.now();
+
+  // Determine what was actually collected
+  let collected=finalTotal, payType='normal', payLabel='一般零售';
+  if(type==='ltc_self'){collected=selfPay;payType='ltc_self';payLabel='長照個案自付30%';}
+  else if(type==='ltc_gov'){collected=govPay;payType='ltc_gov';payLabel='長照政府補助70%';}
+
+  const order={
+    id:orderId,time:now,items:[...cart],subtotal,discount,total:finalTotal,
+    person,returned:false,
+    payType,payLabel,collected,selfPay,govPay,
+    isLTC:type!=='normal',
+  };
+  DB.sales.push(order);
+  cart.forEach(item=>{const p=DB.products.find(x=>x.id===item.id);if(p)p.stock-=item.qty;});
+  addOpLog(person,`結帳[${payLabel}] 訂單${orderId} 收款$${collected.toLocaleString()}`);
+  save(DB);
+  cart=[];
+  closeModal('modal-checkout');
+  renderProducts();
+  checkStockAlerts();
+  showToast('✅ 結帳完成！');
+}
+
+// ── RETURN ──
+function openReturnModal() {
+  const validOrders=DB.sales.filter(o=>!o.returned).slice(-30).reverse();
+  document.getElementById('return-order-select').innerHTML=validOrders.map(o=>
+    `<option value="${o.id}">${new Date(o.time).toLocaleDateString()} [${o.payLabel||'一般零售'}] $${o.total}（${o.person}）</option>`
+  ).join('');
+  showReturnDetail();
+  openModal('modal-return');
+}
+
+function showReturnDetail() {
+  const id=document.getElementById('return-order-select').value;
+  const order=DB.sales.find(o=>o.id===id);
+  if(!order){document.getElementById('return-detail').innerHTML='';return;}
+  let info=`<div class="alert alert-red">退貨後以下品項庫存將補回：</div>`+
+    order.items.map(i=>`<div style="font-size:13px;padding:3px 0">${i.name} × ${i.qty}</div>`).join('');
+  if(order.isLTC){const lbl={ltc_self:'個案自付30%，退還：$'+(order.selfPay||0).toLocaleString(),ltc_gov:'政府補助70%，退還：$'+(order.govPay||0).toLocaleString()};info+=`<div class="alert alert-blue" style="margin-top:8px">♿ 長照訂單（${order.payLabel||''}）<br>${lbl[order.payType]||''}</div>`;}
+  else info+=`<div style="font-weight:700;margin-top:8px;font-size:14px">退款金額：$${order.total.toLocaleString()}</div>`;
+  document.getElementById('return-detail').innerHTML=info;
+}
+
+function doReturn() {
+  const id=document.getElementById('return-order-select').value;
+  const order=DB.sales.find(o=>o.id===id);
+  if(!order)return;
+  order.returned=true;order.returnTime=new Date().toISOString();
+  order.items.forEach(item=>{const p=DB.products.find(x=>x.id===item.id);if(p)p.stock+=item.qty;});
+  addOpLog('管理員',`退貨 訂單${id}${order.isLTC?'[長照]':''} $${order.total}`);
+  save(DB);closeModal('modal-return');renderProducts();
+  showToast('退貨完成，庫存已補回');
+}
+
+// ══════════════════════════════════════════
+//  CASES
+// ══════════════════════════════════════════
+let selectedCaseId = null;
+
+function renderCases() {
+  const search=(document.getElementById('case-search')?.value||'').toLowerCase();
+  let cases=DB.cases.filter(c=>!search||c.name.includes(search)||c.phone.includes(search));
+  document.getElementById('case-list').innerHTML = cases.length ?
+    cases.map(c=>`
+      <div class="card case-row" style="cursor:pointer;margin-bottom:9px;${selectedCaseId===c.id?'border-color:var(--blue);background:var(--blue-pale)':''}" onclick="selectCase(${c.id})">
+        <div class="case-info">
+          <div class="case-name">${c.name} <span class="badge badge-blue">第${c.level}級</span></div>
+          <div class="case-meta">${c.phone}</div>
+        </div>
+        <div style="display:flex;gap:6px;flex-shrink:0">
+          <button class="btn btn-blue btn-sm" onclick="event.stopPropagation();startLTCFromCase(${c.id})">♿ 選此結帳</button>
+          <button class="btn btn-outline btn-sm" onclick="event.stopPropagation();openCaseModal(${c.id})">編輯</button>
+          <button class="btn btn-red btn-sm" onclick="event.stopPropagation();deleteCase(${c.id})">刪除</button>
+        </div>
+      </div>`).join('')
+    : '<div style="text-align:center;color:var(--text2);padding:32px;font-size:14px">尚無個案資料</div>';
+  if(selectedCaseId) showCaseDetail(selectedCaseId);
+}
+
+function selectCase(id) {
+  selectedCaseId=id;
+  renderCases();
+  showCaseDetail(id);
+}
+
+function showCaseDetail(id) {
+  const c=DB.cases.find(x=>x.id===id);
+  if(!c)return;
+  const caseOrders=DB.sales.filter(o=>o.ltcCaseId===id&&!o.returned);
+  const totalSelf=caseOrders.reduce((s,o)=>s+o.selfPay,0);
+  const totalSub=caseOrders.reduce((s,o)=>s+o.subsidy,0);
+  document.getElementById('case-detail-card').style.display='block';
+  document.getElementById('case-detail-title').textContent=`👤 ${c.name} 的消費記錄`;
+  document.getElementById('case-detail-body').innerHTML=`
+    <div class="grid3" style="margin-bottom:12px">
+      <div class="stat-box"><div class="stat-val" style="font-size:18px">第${c.level}級</div><div class="stat-label">長照等級</div></div>
+      <div class="stat-box"><div class="stat-val" style="font-size:18px">$${totalSelf.toLocaleString()}</div><div class="stat-label">累計自付</div></div>
+      <div class="stat-box"><div class="stat-val" style="font-size:18px">$${totalSub.toLocaleString()}</div><div class="stat-label">累計補助</div></div>
+    </div>
+    <table><thead><tr><th>日期</th><th>商品</th><th>總額</th><th>自付30%</th><th>補助70%</th></tr></thead>
+    <tbody>${caseOrders.length?[...caseOrders].reverse().map(o=>
+      `<tr><td>${new Date(o.time).toLocaleDateString()}</td>
+       <td>${o.items.map(i=>i.name+'×'+i.qty).join('、')}</td>
+       <td>$${o.total.toLocaleString()}</td>
+       <td style="color:var(--blue);font-weight:700">$${o.selfPay.toLocaleString()}</td>
+       <td>$${o.subsidy.toLocaleString()}</td></tr>`).join('')
+    :'<tr><td colspan="5" style="text-align:center;color:var(--text2)">尚無消費記錄</td></tr>'}</tbody></table>`;
+}
+
+function openCaseModal(id) {
+  if(id){
+    const c=DB.cases.find(x=>x.id===id);
+    document.getElementById('case-modal-title').textContent='編輯個案';
+    document.getElementById('edit-case-id').value=c.id;
+    document.getElementById('edit-case-name').value=c.name;
+    document.getElementById('edit-case-phone').value=c.phone;
+    document.getElementById('edit-case-level').value=c.level;
+  } else {
+    document.getElementById('case-modal-title').textContent='新增個案';
+    document.getElementById('edit-case-id').value='';
+    document.getElementById('edit-case-name').value='';
+    document.getElementById('edit-case-phone').value='';
+    document.getElementById('edit-case-level').value='2';
+  }
+  openModal('modal-case');
+}
+
+function saveCase() {
+  const id=document.getElementById('edit-case-id').value;
+  const name=document.getElementById('edit-case-name').value.trim();
+  const phone=document.getElementById('edit-case-phone').value.trim();
+  const level=document.getElementById('edit-case-level').value;
+  if(!name){showToast('請填寫姓名');return;}
+  if(id){const c=DB.cases.find(x=>x.id==id);Object.assign(c,{name,phone,level});}
+  else DB.cases.push({id:DB.nextId++,name,phone,level});
+  save(DB);closeModal('modal-case');renderCases();showToast('個案已儲存');
+}
+
+function deleteCase(id){
+  if(!confirm('確定刪除此個案？'))return;
+  DB.cases=DB.cases.filter(x=>x.id!==id);
+  if(selectedCaseId===id){selectedCaseId=null;document.getElementById('case-detail-card').style.display='none';}
+  save(DB);renderCases();
+}
+
+function startLTCFromCase(id){
+  const c=DB.cases.find(x=>x.id===id);
+  if(!c)return;
+  showPage('sale');
+  showToast('♿ '+c.name+'（第'+c.level+'級）— 結帳時選「長照個案自付30%」');
+}
+
+// ══════════════════════════════════════════
+//  STOCK
+// ══════════════════════════════════════════
+function renderStock() {
+  const search=(document.getElementById('stock-search')?.value||'').toLowerCase();
+  const {red,yellow}=DB.thresholds;
+  const lowRed=DB.products.filter(p=>!p.hidden&&p.stock<=red);
+  const lowYellow=DB.products.filter(p=>!p.hidden&&p.stock>red&&p.stock<=yellow);
+  const alerts=document.getElementById('stock-alerts-area');
+  alerts.innerHTML='';
+  if(lowRed.length) alerts.innerHTML+=`<div class="alert alert-red">🔴 危急：${lowRed.map(p=>p.name+'('+p.stock+')').join('、')}</div>`;
+  if(lowYellow.length) alerts.innerHTML+=`<div class="alert alert-yellow">🟡 注意：${lowYellow.map(p=>p.name+'('+p.stock+')').join('、')}</div>`;
+  let products=DB.products.filter(p=>!p.hidden);
+  if(search) products=products.filter(p=>p.name.toLowerCase().includes(search)||p.cat.includes(search));
+  document.getElementById('stock-tbody').innerHTML=products.map(p=>{
+    let badge=`<span class="badge badge-green">正常</span>`;
+    if(p.stock<=red) badge=`<span class="badge badge-red">🔴 危急</span>`;
+    else if(p.stock<=yellow) badge=`<span class="badge badge-yellow">🟡 注意</span>`;
+    return `<tr><td>${p.name}</td><td>${p.cat}</td><td style="font-weight:700">${p.stock}</td><td>${yellow}</td><td>${badge}</td></tr>`;
+  }).join('');
+  document.getElementById('adjust-product').innerHTML=DB.products.filter(p=>!p.hidden).map(p=>
+    `<option value="${p.id}">${p.name}（庫存:${p.stock}）</option>`).join('');
+}
+
+function openAdjustModal(){
+  renderStock();
+  document.getElementById('adjust-person').innerHTML=DB.persons.map(p=>`<option>${p}</option>`).join('');
+  openModal('modal-adjust');
+}
+
+function doAdjust(){
+  const pid=parseInt(document.getElementById('adjust-product').value);
+  const qty=parseInt(document.getElementById('adjust-qty').value);
+  const reason=document.getElementById('adjust-reason').value;
+  const person=document.getElementById('adjust-person').value;
+  if(isNaN(qty)){showToast('請輸入數量');return;}
+  const p=DB.products.find(x=>x.id===pid);if(!p)return;
+  const before=p.stock;p.stock=Math.max(0,p.stock+qty);
+  DB.adjustments.push({time:new Date().toISOString(),productId:pid,name:p.name,before,after:p.stock,qty,reason,person});
+  addOpLog(person,`調整庫存 ${p.name} ${qty>0?'+':''}${qty}（${reason}）`);
+  save(DB);closeModal('modal-adjust');renderStock();checkStockAlerts();
+  showToast(`庫存已調整：${p.name} → ${p.stock}`);
+}
+
+// ══════════════════════════════════════════
+//  REPORT
+// ══════════════════════════════════════════
+let reportTab='general';
+function switchReportTab(tab,el){
+  reportTab=tab;
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  el.classList.add('active');
+  document.getElementById('report-general').style.display=tab==='general'?'block':'none';
+  document.getElementById('report-ltc').style.display=tab==='ltc'?'block':'none';
+  renderReport();
+}
+
+function renderReport() {
+  const today=new Date().toISOString().slice(0,10);
+  const month=today.slice(0,7);
+  const startEl=document.getElementById('report-start');
+  const endEl=document.getElementById('report-end');
+  if(!startEl.value) startEl.value=today.slice(0,8)+'01';
+  if(!endEl.value) endEl.value=today;
+  const start=startEl.value,end=endEl.value;
+
+  const allSales=DB.sales.filter(o=>!o.returned);
+  const normalToday=allSales.filter(o=>o.time.startsWith(today)&&o.payType==='normal');
+  const normalMonth=allSales.filter(o=>o.time.startsWith(month)&&o.payType==='normal');
+  const rangeAll=allSales.filter(o=>o.time.slice(0,10)>=start&&o.time.slice(0,10)<=end);
+  const rangeNormal=rangeAll.filter(o=>o.payType==='normal');
+
+  document.getElementById('r-today-amount').textContent='$'+normalToday.reduce((s,o)=>s+o.total,0).toLocaleString();
+  document.getElementById('r-today-count').textContent=normalToday.length;
+  document.getElementById('r-month-amount').textContent='$'+normalMonth.reduce((s,o)=>s+o.total,0).toLocaleString();
+  document.getElementById('r-month-count').textContent=normalMonth.length;
+
+  const rankMap={};
+  rangeNormal.forEach(o=>o.items.forEach(i=>{
+    if(!rankMap[i.name])rankMap[i.name]={qty:0,amt:0};
+    rankMap[i.name].qty+=i.qty;rankMap[i.name].amt+=i.price*i.qty;
+  }));
+  const ranked=Object.entries(rankMap).sort((a,b)=>b[1].qty-a[1].qty).slice(0,10);
+  document.getElementById('rank-tbody').innerHTML=ranked.map(([name,v],i)=>
+    `<tr><td>${i+1}</td><td>${name}</td><td>${v.qty}</td><td>$${v.amt.toLocaleString()}</td></tr>`
+  ).join('')||'<tr><td colspan="4" style="color:var(--text2);text-align:center">無資料</td></tr>';
+
+  // Sales log (all)
+  const typeLabel={normal:'一般',ltc_self:'♿自付30%',ltc_gov:'🏛補助70%'};
+  const typeBadge={normal:'badge-gray',ltc_self:'badge-blue',ltc_gov:'badge-blue'};
+  document.getElementById('sales-log-tbody').innerHTML=[...rangeAll].reverse().slice(0,60).map(o=>
+    `<tr><td>${new Date(o.time).toLocaleString('zh-TW',{hour12:false}).slice(0,-3)}</td>
+     <td>$${(o.collected??o.total).toLocaleString()}</td>
+     <td><span class="badge ${typeBadge[o.payType]||'badge-gray'}">${typeLabel[o.payType]||'一般'}</span></td>
+     <td>${o.person}</td></tr>`
+  ).join('')||'<tr><td colspan="4" style="color:var(--text2);text-align:center">無資料</td></tr>';
+
+  // LTC stats
+  const ltcToday=allSales.filter(o=>o.time.startsWith(today)&&o.isLTC);
+  const ltcSelfToday=allSales.filter(o=>o.time.startsWith(today)&&o.payType==='ltc_self');
+  const ltcGovToday=allSales.filter(o=>o.time.startsWith(today)&&o.payType==='ltc_gov');
+  const ltcRange=rangeAll.filter(o=>o.isLTC);
+  document.getElementById('ltc-today-total').textContent='$'+ltcToday.reduce((s,o)=>s+o.total,0).toLocaleString();
+  document.getElementById('ltc-today-self').textContent='$'+ltcSelfToday.reduce((s,o)=>s+(o.collected??o.selfPay),0).toLocaleString();
+  document.getElementById('ltc-today-subsidy').textContent='$'+ltcGovToday.reduce((s,o)=>s+(o.collected??o.govPay),0).toLocaleString();
+  document.getElementById('ltc-today-count').textContent=ltcToday.length;
+  document.getElementById('ltc-log-tbody').innerHTML=[...ltcRange].reverse().map(o=>{
+    const badge=o.payType==='ltc_self'?'♿ 個案自付30%':'🏛 政府補助70%';
+    return `<tr><td>${new Date(o.time).toLocaleDateString()}</td>
+     <td><span class="badge badge-blue" style="font-size:11px">${badge}</span></td>
+     <td>$${o.total.toLocaleString()}</td>
+     <td style="color:var(--blue);font-weight:700">$${(o.collected??0).toLocaleString()}</td>
+     <td>$${o.selfPay.toLocaleString()}</td>
+     <td>$${o.govPay.toLocaleString()}</td>
+     <td>${o.person}</td></tr>`;
+  }).join('')||'<tr><td colspan="7" style="color:var(--text2);text-align:center">無長照紀錄</td></tr>';
+}
+
+function renderOpLog(){
+  document.getElementById('op-log-area').style.display='block';
+  document.getElementById('op-log-tbody').innerHTML=[...DB.oplog].reverse().slice(0,100).map(l=>
+    `<tr><td>${new Date(l.time).toLocaleString('zh-TW',{hour12:false}).slice(0,-3)}</td><td>${l.person}</td><td>${l.action}</td></tr>`
+  ).join('')||'<tr><td colspan="3">無紀錄</td></tr>';
+}
+
+function exportBackup(){
+  const data=JSON.stringify(DB,null,2);
+  const blob=new Blob([data],{type:'application/json'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');
+  const date=new Date().toISOString().slice(0,10);
+  a.href=url;a.download=`禾家器材行_備份_${date}.json`;a.click();
+  URL.revokeObjectURL(url);showToast('備份已匯出');
+}
+function importBackup(){document.getElementById('import-file').click();}
+function doImport(e){
+  const file=e.target.files[0];if(!file)return;
+  const reader=new FileReader();
+  reader.onload=ev=>{
+    try{
+      const d=JSON.parse(ev.target.result);
+      if(confirm('確定要還原備份？目前資料將被覆蓋！')){DB=d;save(DB);showPage('report');showToast('備份已還原');}
+    }catch{showToast('備份檔格式錯誤');}
+    e.target.value='';
+  };
+  reader.readAsText(file);
+}
+
+// ══════════════════════════════════════════
+//  PUNCH
+// ══════════════════════════════════════════
+function renderPunch(){
+  document.getElementById('punch-name-grid').innerHTML=DB.persons.map(p=>
+    `<button class="punch-name-btn" onclick="doPunch('${p}')">${p}</button>`
+  ).join('');
+  const today=new Date().toISOString().slice(0,10);
+  const todayPunch=DB.punch.filter(p=>p.time.startsWith(today));
+  document.getElementById('punch-records').innerHTML=todayPunch.length?
+    todayPunch.slice().reverse().map(p=>
+      `<div class="punch-record"><span>${p.person}</span><span class="badge ${p.type==='上班'?'badge-green':'badge-gray'}">${p.type}</span><span>${new Date(p.time).toLocaleTimeString('zh-TW',{hour12:false,hour:'2-digit',minute:'2-digit'})}</span></div>`
+    ).join(''):'<div style="color:var(--text2);font-size:13px;padding:16px;text-align:center">今日尚無打卡紀錄</div>';
+  document.getElementById('punch-status').textContent='';
+}
+
+function doPunch(name){
+  const today=new Date().toISOString().slice(0,10);
+  const last=DB.punch.filter(p=>p.time.startsWith(today)&&p.person===name).at(-1);
+  const type=(!last||last.type==='下班')?'上班':'下班';
+  DB.punch.push({person:name,type,time:new Date().toISOString()});
+  addOpLog(name,type+'打卡');
+  save(DB);
+  const t=new Date().toLocaleTimeString('zh-TW',{hour12:false,hour:'2-digit',minute:'2-digit'});
+  document.getElementById('punch-status').textContent=`✅ ${name} ${type}打卡 ${t}`;
+  renderPunch();showToast(`${name} ${type} ${t}`);
+}
+
+function showAllPunch(){
+  const today=new Date().toISOString().slice(0,10);
+  const tp=DB.punch.filter(p=>p.time.startsWith(today));
+  alert(tp.length?tp.map(p=>`${p.person} ${p.type} ${new Date(p.time).toLocaleTimeString('zh-TW',{hour12:false})}`).join('\n'):'今日無打卡紀錄');
+}
+
+// ══════════════════════════════════════════
+//  SETTINGS
+// ══════════════════════════════════════════
+function renderSettings(){
+  document.getElementById('person-list').innerHTML=DB.persons.map(p=>
+    `<div style="display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid var(--border)">
+      <span>${p}</span><button class="btn btn-outline btn-sm" onclick="removePerson('${p}')">刪除</button></div>`
+  ).join('');
+
+  document.getElementById('settings-product-tbody').innerHTML=DB.products.map(p=>
+    `<tr><td>${p.name}</td><td>${p.cat}</td><td>$${p.price}</td><td>${p.stock}</td>
+     <td><span class="badge ${p.hidden?'badge-gray':'badge-green'}">${p.hidden?'隱藏':'顯示'}</span></td>
+     <td style="display:flex;gap:4px;flex-wrap:wrap">
+       <button class="btn btn-outline btn-sm" onclick="openProductModal(${p.id})">編輯</button>
+       <button class="btn btn-outline btn-sm" onclick="toggleProduct(${p.id})">${p.hidden?'顯示':'隱藏'}</button>
+       <button class="btn btn-red btn-sm" onclick="deleteProduct(${p.id})">刪除</button>
+     </td></tr>`
+  ).join('');
+
+  document.getElementById('promo-tbody').innerHTML=DB.promos.map(p=>{
+    let cond='';
+    if(p.type==='discount')cond=p.value+'折';
+    else if(p.type==='fixed_off')cond=`滿$${p.threshold||0}折$${p.value}`;
+    else if(p.type==='qty_discount')cond=`買${p.buy||2}送1`;
+    return `<tr>
+      <td>${p.name}</td>
+      <td>${{discount:'全館折扣',qty_discount:'買N送1',fixed_off:'滿額折抵'}[p.type]}</td>
+      <td>${cond}</td><td>${p.start||'-'} ~ ${p.end||'-'}</td>
+      <td><span class="badge ${p.active?'badge-green':'badge-gray'}">${p.active?'啟用':'停用'}</span></td>
+      <td style="display:flex;gap:4px">
+        <button class="btn btn-outline btn-sm" onclick="togglePromo(${p.id})">${p.active?'停用':'啟用'}</button>
+        <button class="btn btn-red btn-sm" onclick="deletePromo(${p.id})">刪除</button>
+      </td></tr>`;
+  }).join('');
+
+  document.getElementById('cat-list').innerHTML=DB.categories.map(c=>
+    `<div style="display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid var(--border)">
+      <span>${c}</span><button class="btn btn-outline btn-sm" onclick="removeCategory('${c}')">刪除</button></div>`
+  ).join('');
+
+  document.getElementById('thresh-red').value=DB.thresholds.red;
+  document.getElementById('thresh-yellow').value=DB.thresholds.yellow;
+  document.getElementById('edit-product-cat').innerHTML=DB.categories.map(c=>`<option>${c}</option>`).join('');
+}
+
+function addPerson(){const v=document.getElementById('new-person').value.trim();if(!v)return;if(DB.persons.includes(v)){showToast('已有此人員');return;}DB.persons.push(v);save(DB);renderSettings();document.getElementById('new-person').value='';showToast('已新增：'+v);}
+function removePerson(name){if(!confirm('確定刪除 '+name+' ？'))return;DB.persons=DB.persons.filter(p=>p!==name);save(DB);renderSettings();}
+function addCategory(){const v=document.getElementById('new-cat').value.trim();if(!v||DB.categories.includes(v))return;DB.categories.push(v);save(DB);renderSettings();document.getElementById('new-cat').value='';}
+function removeCategory(c){if(!confirm('確定刪除分類「'+c+'」？'))return;DB.categories=DB.categories.filter(x=>x!==c);save(DB);renderSettings();}
+function saveThresholds(){DB.thresholds.red=parseInt(document.getElementById('thresh-red').value)||3;DB.thresholds.yellow=parseInt(document.getElementById('thresh-yellow').value)||8;save(DB);showToast('警戒值已儲存');renderSettings();}
+
+function openProductModal(id){
+  document.getElementById('edit-product-cat').innerHTML=DB.categories.map(c=>`<option>${c}</option>`).join('');
+  if(id){const p=DB.products.find(x=>x.id===id);document.getElementById('product-modal-title').textContent='編輯品項';document.getElementById('edit-product-id').value=p.id;document.getElementById('edit-product-name').value=p.name;document.getElementById('edit-product-cat').value=p.cat;document.getElementById('edit-product-price').value=p.price;document.getElementById('edit-product-stock').value=p.stock;}
+  else{document.getElementById('product-modal-title').textContent='新增品項';document.getElementById('edit-product-id').value='';document.getElementById('edit-product-name').value='';document.getElementById('edit-product-price').value='';document.getElementById('edit-product-stock').value='0';}
+  openModal('modal-product');
+}
+function saveProduct(){
+  const id=document.getElementById('edit-product-id').value;
+  const name=document.getElementById('edit-product-name').value.trim();
+  const cat=document.getElementById('edit-product-cat').value;
+  const price=parseFloat(document.getElementById('edit-product-price').value);
+  const stock=parseInt(document.getElementById('edit-product-stock').value);
+  if(!name||isNaN(price)){showToast('請填寫完整資料');return;}
+  if(id){const p=DB.products.find(x=>x.id==id);Object.assign(p,{name,cat,price,stock});}
+  else DB.products.push({id:DB.nextId++,name,cat,price,stock,hidden:false});
+  save(DB);closeModal('modal-product');renderSettings();showToast('品項已儲存');
+}
+function toggleProduct(id){const p=DB.products.find(x=>x.id===id);p.hidden=!p.hidden;save(DB);renderSettings();}
+function deleteProduct(id){if(!confirm('確定刪除此品項？'))return;DB.products=DB.products.filter(x=>x.id!==id);save(DB);renderSettings();}
+
+function openPromoModal(){
+  document.getElementById('promo-modal-title').textContent='新增活動';
+  document.getElementById('edit-promo-id').value='';
+  document.getElementById('edit-promo-name').value='';
+  document.getElementById('edit-promo-start').value='';
+  document.getElementById('edit-promo-end').value='';
+  updatePromoFields();openModal('modal-promo');
+}
+function updatePromoFields(){
+  const type=document.getElementById('edit-promo-type').value;
+  let html='';
+  if(type==='discount')html=`<label>折扣（%，例：90表示九折）</label><input type="number" id="promo-val" min="1" max="100" value="90" style="margin-bottom:7px">`;
+  else if(type==='fixed_off')html=`<label>滿額（元）</label><input type="number" id="promo-threshold" value="1000" style="margin-bottom:7px"><label>折抵金額（元）</label><input type="number" id="promo-val" value="100" style="margin-bottom:7px">`;
+  else if(type==='qty_discount')html=`<label>買幾件送1（例：買2送1 → 填2）</label><input type="number" id="promo-buy" value="2" style="margin-bottom:7px">`;
+  document.getElementById('promo-fields').innerHTML=html;
+}
+function savePromo(){
+  const name=document.getElementById('edit-promo-name').value.trim();
+  const type=document.getElementById('edit-promo-type').value;
+  const start=document.getElementById('edit-promo-start').value;
+  const end=document.getElementById('edit-promo-end').value;
+  if(!name){showToast('請填寫活動名稱');return;}
+  const promo={id:DB.nextId++,name,type,start,end,active:true};
+  if(type==='discount'||type==='fixed_off')promo.value=parseFloat(document.getElementById('promo-val')?.value)||0;
+  if(type==='fixed_off')promo.threshold=parseFloat(document.getElementById('promo-threshold')?.value)||0;
+  if(type==='qty_discount')promo.buy=parseInt(document.getElementById('promo-buy')?.value)||2;
+  DB.promos.push(promo);save(DB);closeModal('modal-promo');renderSettings();showToast('活動已新增');
+}
+function togglePromo(id){const p=DB.promos.find(x=>x.id===id);p.active=!p.active;save(DB);renderSettings();}
+function deletePromo(id){if(!confirm('確定刪除此活動？'))return;DB.promos=DB.promos.filter(x=>x.id!==id);save(DB);renderSettings();}
+function changePw(){
+  const old=document.getElementById('old-pw').value;const nw=document.getElementById('new-pw').value;const cf=document.getElementById('confirm-pw').value;
+  if(old!==DB.password){showToast('現有密碼錯誤');return;}if(nw!==cf){showToast('新密碼不一致');return;}if(!nw){showToast('新密碼不能為空');return;}
+  DB.password=nw;save(DB);document.getElementById('old-pw').value='';document.getElementById('new-pw').value='';document.getElementById('confirm-pw').value='';showToast('密碼已變更');
+}
+
+// ══════════════════════════════════════════
+//  PASSWORD GATE
+// ══════════════════════════════════════════
+let _pwCallback=null;
+function requirePassword(ctx,cb){_pwCallback=cb;document.getElementById('pw-input').value='';openModal('modal-pw');setTimeout(()=>document.getElementById('pw-input').focus(),100);}
+function checkPwModal(){
+  if(document.getElementById('pw-input').value===DB.password){closeModal('modal-pw');if(_pwCallback)_pwCallback();_pwCallback=null;}
+  else{showToast('密碼錯誤');document.getElementById('pw-input').value='';}
+}
+
+// ══════════════════════════════════════════
+//  UTILS
+// ══════════════════════════════════════════
+function openModal(id){document.getElementById(id).classList.add('open');}
+function closeModal(id){document.getElementById(id).classList.remove('open');}
+let toastTimer;
+function showToast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');clearTimeout(toastTimer);toastTimer=setTimeout(()=>t.classList.remove('show'),2200);}
+function addOpLog(person,action){DB.oplog.push({time:new Date().toISOString(),person,action});if(DB.oplog.length>2000)DB.oplog=DB.oplog.slice(-2000);}
+function checkStockAlerts(){
+  const {yellow}=DB.thresholds;
+  const low=DB.products.filter(p=>!p.hidden&&p.stock<=yellow);
+  const bar=document.getElementById('stock-alert-bar');
+  if(low.length){document.getElementById('stock-alert-msg').textContent=`${low.length}項低庫存：${low.map(p=>p.name+'('+p.stock+')').join('、')}`;bar.classList.add('show');}
+  else bar.classList.remove('show');
+}
+
+document.querySelectorAll('.modal-overlay').forEach(el=>{
+  el.addEventListener('click',e=>{if(e.target===el)el.classList.remove('open');});
+});
+
+// Init
+const today=new Date().toISOString().slice(0,10);
+document.getElementById('report-start').value=today.slice(0,8)+'01';
+document.getElementById('report-end').value=today;
+renderProducts();
+checkStockAlerts();
+</script>
+</body>
+</html>
