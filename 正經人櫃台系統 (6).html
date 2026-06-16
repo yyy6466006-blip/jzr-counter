@@ -1,0 +1,1901 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#B85C2A">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="正經人櫃台">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>正經人櫃台系統</title>
+<style>
+:root{
+  --primary:#B85C2A;--primary-light:#F7EDE4;--primary-dark:#8A3F18;
+  --gold:#C8973A;--gold-light:#FBF3E2;
+  --success:#2E7D4F;--success-light:#E6F4EC;
+  --danger:#B02020;--danger-light:#FDEAEA;
+  --warn:#C06010;--warn-light:#FEF3E2;
+  --bg:#FAF7F3;--surface:#FFFFFF;--border:#E5D8CC;
+  --text:#1E140A;--text2:#7A5C40;--text3:#B09880;
+  --radius:14px;--radius-sm:9px;--cart-h:72px;
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+html,body{height:100%;overflow:hidden;}
+body{font-family:'PingFang TC','Noto Sans TC',sans-serif;background:var(--bg);color:var(--text);display:flex;flex-direction:column;}
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:500;display:flex;align-items:center;justify-content:center;padding:20px;}
+.overlay-box{background:var(--surface);border-radius:var(--radius);padding:24px;width:100%;max-width:380px;max-height:80vh;overflow-y:auto;}
+.overlay-title{font-size:18px;font-weight:800;margin-bottom:16px;}
+.overlay-sub{font-size:13px;color:var(--text2);margin-bottom:16px;}
+.header{background:var(--primary);color:#fff;padding:10px 16px;display:flex;justify-content:space-between;align-items:center;flex-shrink:0;}
+.header-title{font-size:17px;font-weight:800;letter-spacing:1px;}
+.header-right{display:flex;align-items:center;gap:6px;flex-wrap:nowrap;}
+.header-date{font-size:11px;opacity:.85;}
+.header-user{font-size:11px;background:rgba(255,255,255,.2);padding:3px 7px;border-radius:6px;white-space:nowrap;}
+.hbtn{background:rgba(255,255,255,.2);border:none;color:#fff;border-radius:7px;padding:5px 9px;font-size:12px;font-weight:700;cursor:pointer;}
+.nav{display:flex;background:var(--surface);border-bottom:1px solid var(--border);flex-shrink:0;overflow-x:auto;}
+.nav::-webkit-scrollbar{display:none;}
+.nav-btn{flex:1;min-width:50px;padding:9px 3px 6px;font-size:11px;font-weight:600;color:var(--text3);border:none;background:none;cursor:pointer;border-bottom:3px solid transparent;display:flex;flex-direction:column;align-items:center;gap:2px;}
+.nav-btn.active{color:var(--primary);border-bottom-color:var(--primary);}
+.nav-icon{font-size:18px;line-height:1;}
+.page{display:none;flex:1;overflow-y:auto;padding:12px 12px calc(var(--cart-h) + 16px);}
+.page.active{display:block;}
+.page.no-cart{padding-bottom:12px;}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:13px;margin-bottom:11px;}
+.sec{font-size:12px;font-weight:700;color:var(--text2);margin:12px 0 7px;}
+.sh{font-size:14px;font-weight:700;margin-bottom:10px;}
+.cat-tabs{display:flex;gap:6px;margin-bottom:12px;overflow-x:auto;padding-bottom:2px;}
+.cat-tabs::-webkit-scrollbar{display:none;}
+.cat-tab{flex-shrink:0;padding:9px 18px;border:1.5px solid var(--border);border-radius:99px;background:var(--surface);font-size:14px;font-weight:700;color:var(--text2);cursor:pointer;}
+.cat-tab.active{border-color:var(--primary);background:var(--primary);color:#fff;}
+.promo-scroll{display:flex;gap:7px;overflow-x:auto;padding-bottom:4px;margin-bottom:10px;}
+.promo-scroll::-webkit-scrollbar{display:none;}
+.promo-pill{flex-shrink:0;padding:9px 14px;border:1.5px solid var(--border);border-radius:99px;background:var(--surface);font-size:13px;font-weight:600;color:var(--text2);cursor:pointer;text-align:center;line-height:1.3;}
+.promo-pill.active{border-color:var(--primary);background:var(--primary-light);color:var(--primary-dark);}
+.promo-pill.disabled{opacity:.35;pointer-events:none;}
+.pill-price{font-size:12px;color:var(--primary-dark);font-weight:700;}
+.locked-banner{background:var(--primary-light);border:1.5px solid var(--primary);border-radius:var(--radius-sm);padding:10px 14px;margin-bottom:10px;display:flex;justify-content:space-between;align-items:center;}
+.locked-info{font-size:13px;font-weight:700;color:var(--primary-dark);}
+.locked-total{font-size:20px;font-weight:900;color:var(--primary-dark);}
+.flavor-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:8px;}
+.flavor-card{background:var(--surface);border:1.5px solid var(--border);border-radius:var(--radius);padding:11px 7px;text-align:center;}
+.flavor-card.low{border-color:#E8B060;}
+.flavor-card.zero,.flavor-card.lzero{opacity:.4;pointer-events:none;}
+.f-name{font-size:12px;font-weight:700;color:var(--text);line-height:1.3;}
+.f-stock{font-size:11px;color:var(--text3);margin-top:2px;}
+.qty-row{display:flex;align-items:center;justify-content:center;gap:8px;margin-top:8px;}
+.qty-btn{width:30px;height:30px;border-radius:50%;border:1.5px solid var(--border);background:var(--bg);font-size:17px;cursor:pointer;display:flex;align-items:center;justify-content:center;color:var(--text);}
+.qty-btn:active{background:var(--border);}
+.qty-num{font-size:19px;font-weight:800;min-width:24px;text-align:center;}
+.gift-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;}
+.gift-card{background:var(--surface);border:1.5px solid var(--border);border-radius:var(--radius);padding:12px 9px;text-align:center;}
+.g-name{font-size:12px;font-weight:700;color:var(--text);line-height:1.4;}
+.g-price{font-size:14px;font-weight:800;color:var(--primary-dark);margin-top:3px;}
+.g-stock{font-size:11px;color:var(--text3);margin-top:2px;}
+.cart-bar{position:fixed;bottom:0;left:0;right:0;height:var(--cart-h);background:var(--primary);display:flex;align-items:center;padding:0 16px;gap:12px;z-index:100;cursor:pointer;box-shadow:0 -3px 12px rgba(0,0,0,.15);}
+.cart-bar.empty{background:#999;pointer-events:none;}
+.cart-bar-left{flex:1;}
+.cart-bar-count{font-size:12px;color:rgba(255,255,255,.8);margin-bottom:2px;}
+.cart-bar-amount{font-size:22px;font-weight:900;color:#fff;}
+.cart-bar-btn{background:#fff;color:var(--primary);border:none;border-radius:99px;padding:10px 20px;font-size:15px;font-weight:800;cursor:pointer;}
+.cart-modal{position:fixed;inset:0;z-index:200;display:flex;flex-direction:column;}
+.cart-backdrop{position:absolute;inset:0;background:rgba(0,0,0,.4);}
+.cart-sheet{position:absolute;bottom:0;left:0;right:0;background:var(--surface);border-radius:20px 20px 0 0;padding:16px;max-height:85vh;overflow-y:auto;}
+.cart-handle{width:40px;height:4px;background:var(--border);border-radius:99px;margin:0 auto 14px;}
+.cart-sheet-title{font-size:17px;font-weight:800;margin-bottom:12px;}
+.cart-item-row{display:flex;align-items:center;gap:8px;padding:10px 0;border-bottom:1px solid var(--border);}
+.cart-item-name{flex:1;font-size:13px;font-weight:600;line-height:1.4;}
+.cart-item-price{font-size:14px;font-weight:700;color:var(--primary-dark);min-width:60px;text-align:right;}
+.cart-free-row{display:flex;padding:6px 0;border-bottom:1px solid var(--border);}
+.cart-free-label{flex:1;font-size:12px;color:#5B21B6;padding-left:4px;}
+.cart-free-price{font-size:12px;color:#5B21B6;}
+.cart-total-row{display:flex;justify-content:space-between;padding:14px 0 8px;font-size:18px;font-weight:800;}
+.cart-total-amount{color:var(--primary-dark);}
+.confirm-wrap{text-align:center;padding:16px 8px;}
+.confirm-big{font-size:60px;font-weight:900;color:var(--primary-dark);line-height:1;}
+.confirm-hint{font-size:14px;color:var(--text2);margin:7px 0 16px;}
+.confirm-items{background:var(--bg);border-radius:var(--radius-sm);padding:11px;margin-bottom:16px;text-align:left;}
+.ci-row{display:flex;justify-content:space-between;font-size:13px;padding:4px 0;color:var(--text);}
+.ci-row.total-row{border-top:1px solid var(--border);margin-top:6px;padding-top:8px;font-weight:700;font-size:15px;}
+.btn-primary{width:100%;padding:15px;background:var(--primary);color:#fff;border:none;border-radius:var(--radius);font-size:15px;font-weight:800;cursor:pointer;margin-bottom:8px;}
+.btn-primary:active{background:var(--primary-dark);}
+.btn-ghost{width:100%;padding:11px;background:var(--surface);color:var(--text2);border:1px solid var(--border);border-radius:var(--radius);font-size:14px;cursor:pointer;margin-bottom:6px;}
+.btn-sm-danger{padding:7px 12px;border:1px solid #E8B0B0;border-radius:var(--radius-sm);background:var(--danger-light);color:var(--danger);font-size:12px;font-weight:700;cursor:pointer;}
+.btn-sm-ok{padding:7px 12px;border:1px solid #90CCA8;border-radius:var(--radius-sm);background:var(--success-light);color:var(--success);font-size:12px;font-weight:700;cursor:pointer;}
+.btn-warn{width:100%;padding:12px;background:var(--danger-light);color:var(--danger);border:1px solid #E8B0B0;border-radius:var(--radius);font-size:13px;font-weight:700;cursor:pointer;}
+.badge{display:inline-block;font-size:11px;padding:2px 7px;border-radius:99px;font-weight:700;}
+.badge-ok{background:var(--success-light);color:var(--success);}
+.badge-warn{background:var(--warn-light);color:var(--warn);}
+.badge-danger{background:var(--danger-light);color:var(--danger);}
+.inv-row{display:flex;align-items:center;padding:10px 0;border-bottom:1px solid var(--border);gap:8px;}
+.inv-row:last-child{border-bottom:none;}
+.inv-name{flex:1;font-size:13px;font-weight:600;}
+.adj-input{width:65px;padding:6px 8px;font-size:14px;font-weight:700;text-align:center;border:1.5px solid var(--border);border-radius:var(--radius-sm);background:var(--surface);color:var(--text);}
+.log-row{display:flex;gap:8px;padding:9px 0;border-bottom:1px solid var(--border);}
+.log-time{font-size:11px;color:var(--text3);min-width:40px;padding-top:1px;flex-shrink:0;}
+.log-body{flex:1;font-size:12px;color:var(--text);line-height:1.5;}
+.log-tag{display:inline-block;font-size:11px;padding:1px 6px;border-radius:4px;font-weight:700;margin-right:4px;}
+.tag-sale{background:var(--primary-light);color:var(--primary-dark);}
+.tag-in{background:var(--success-light);color:var(--success);}
+.tag-out{background:var(--warn-light);color:var(--warn);}
+.tag-taste{background:#EDE9FE;color:#5B21B6;}
+.tag-adj{background:#E0F2FE;color:#0369A1;}
+.tag-refund{background:#FCE7F3;color:#9D174D;}
+.tag-clock{background:var(--gold-light);color:#7A5000;}
+.form-label{font-size:12px;color:var(--text2);margin-bottom:4px;display:block;font-weight:600;}
+.form-row{margin-bottom:12px;}
+select,input[type=number],input[type=date],input[type=text],input[type=password],input[type=file]{width:100%;padding:11px 12px;font-size:14px;border:1.5px solid var(--border);border-radius:var(--radius-sm);background:var(--surface);color:var(--text);font-family:inherit;-webkit-appearance:none;appearance:none;}
+select:focus,input:focus{outline:none;border-color:var(--primary);}
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:9px;}
+.alert{display:flex;align-items:flex-start;gap:8px;padding:10px 12px;border-radius:var(--radius-sm);margin-bottom:7px;font-size:12px;line-height:1.5;}
+.alert-warn{background:var(--warn-light);color:var(--warn);border:1px solid #F0C080;}
+.alert-danger{background:var(--danger-light);color:var(--danger);border:1px solid #E8B0B0;}
+.stat-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin-bottom:12px;}
+.stat{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-sm);padding:10px 7px;text-align:center;}
+.stat-val{font-size:19px;font-weight:800;color:var(--primary-dark);}
+.stat-label{font-size:11px;color:var(--text2);margin-top:2px;}
+.stat-period{font-size:10px;color:var(--text3);margin-top:1px;}
+.rank-row{display:flex;align-items:center;padding:9px 0;border-bottom:1px solid var(--border);gap:8px;}
+.rank-num{font-size:16px;font-weight:800;min-width:28px;color:var(--text3);}
+.rank-name{flex:1;font-size:13px;font-weight:600;}
+.rank-val{font-size:14px;font-weight:700;color:var(--primary-dark);}
+.settings-item{display:flex;justify-content:space-between;align-items:center;padding:11px 0;border-bottom:1px solid var(--border);gap:8px;}
+.settings-item:last-child{border-bottom:none;}
+.settings-name{font-size:13px;font-weight:600;}
+.settings-sub{font-size:11px;color:var(--text3);margin-top:2px;}
+.edit-inline{width:100%;padding:6px 9px;font-size:13px;border:1.5px solid var(--primary);border-radius:var(--radius-sm);background:#fff;color:var(--text);margin-top:4px;font-family:inherit;}
+.toggle-btn{padding:6px 11px;border-radius:99px;font-size:12px;font-weight:700;cursor:pointer;border:1.5px solid;}
+.toggle-on{background:var(--success-light);color:var(--success);border-color:#90CCA8;}
+.toggle-off{background:#F0ECE6;color:var(--text3);border-color:var(--border);}
+.promo-manage-row{display:flex;align-items:center;padding:10px 0;border-bottom:1px solid var(--border);gap:8px;}
+.promo-manage-row:last-child{border-bottom:none;}
+.promo-info{flex:1;}
+.staff-pill{display:inline-block;padding:8px 16px;margin:4px;border:1.5px solid var(--border);border-radius:99px;font-size:14px;font-weight:600;cursor:pointer;background:var(--surface);color:var(--text2);}
+.staff-pill.selected{border-color:var(--primary);background:var(--primary);color:#fff;}
+.clock-btn-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px;}
+.clock-btn{padding:18px 10px;border:2px solid var(--border);border-radius:var(--radius);background:var(--surface);font-size:15px;font-weight:700;color:var(--text2);cursor:pointer;text-align:center;}
+.clock-btn.in{border-color:var(--success);background:var(--success-light);color:var(--success);}
+.clock-btn.out{border-color:var(--danger);background:var(--danger-light);color:var(--danger);}
+.date-range-row{display:flex;gap:7px;align-items:flex-end;margin-bottom:11px;}
+.date-range-row>div{flex:1;}
+.btn-query{padding:10px 13px;border:none;border-radius:var(--radius-sm);background:var(--primary);color:#fff;font-size:13px;font-weight:700;cursor:pointer;}
+.empty{text-align:center;color:var(--text3);font-size:13px;padding:18px 0;}
+hr{border:none;border-top:1px solid var(--border);margin:11px 0;}
+.backup-box{background:var(--success-light);border:1px solid #90CCA8;border-radius:var(--radius);padding:13px;margin-bottom:11px;}
+</style>
+</head>
+<body>
+
+<!-- 打卡 Modal -->
+<div id="clock-modal" class="overlay" style="display:none">
+  <div class="overlay-box">
+    <div class="overlay-title">👋 打卡</div>
+    <div class="overlay-sub">請選擇姓名</div>
+    <div id="staff-pills" style="margin-bottom:16px"></div>
+    <div class="clock-btn-grid">
+      <button class="clock-btn in" onclick="clockAction('in')">🟢 上班打卡</button>
+      <button class="clock-btn out" onclick="clockAction('out')">🔴 下班打卡</button>
+    </div>
+    <button class="btn-ghost" onclick="document.getElementById('clock-modal').style.display='none'">跳過</button>
+  </div>
+</div>
+
+<!-- 低庫存 Modal -->
+<div id="lowstock-modal" class="overlay" style="display:none">
+  <div class="overlay-box">
+    <div class="overlay-title">⚠️ 低庫存警示</div>
+    <div id="lowstock-content"></div>
+    <button class="btn-primary" style="margin-top:16px" onclick="document.getElementById('lowstock-modal').style.display='none'">知道了</button>
+  </div>
+</div>
+
+<!-- 密碼 Modal -->
+<div id="pwd-modal" class="overlay" style="display:none">
+  <div class="overlay-box">
+    <div class="overlay-title">🔐 請輸入管理員密碼</div>
+    <div class="form-row"><input type="password" id="pwd-input" placeholder="請輸入密碼" autocomplete="off"></div>
+    <button class="btn-primary" onclick="checkPwd()">確認</button>
+    <button class="btn-ghost" onclick="closePwd()">取消</button>
+    <div id="pwd-error" style="color:var(--danger);font-size:13px;text-align:center;margin-top:8px;display:none">密碼錯誤</div>
+  </div>
+</div>
+
+<!-- 退貨 Modal -->
+<div id="refund-modal" class="overlay" style="display:none">
+  <div class="overlay-box">
+    <div class="overlay-title">🔄 退貨處理</div>
+    <div class="form-row"><label class="form-label">退貨品項</label><select id="refund-item"></select></div>
+    <div class="two-col">
+      <div class="form-row"><label class="form-label">數量</label><input type="number" id="refund-qty" value="1" min="1"></div>
+      <div class="form-row"><label class="form-label">退款金額（$）</label><input type="number" id="refund-amount" value="0" min="0"></div>
+    </div>
+    <div class="form-row"><label class="form-label">備註</label><input type="text" id="refund-note" placeholder="退貨原因"></div>
+    <button class="btn-primary" onclick="submitRefund()">確認退貨</button>
+    <button class="btn-ghost" onclick="document.getElementById('refund-modal').style.display='none'">取消</button>
+  </div>
+</div>
+
+<div class="header">
+  <div style="display:flex;align-items:center;gap:10px"><div class="header-title">正經人 櫃台系統</div><button onclick="navigator.onLine?window.open('https://taiwanmade.waca.shop/','_blank'):alert('目前無網路連線，無法開啟官網\n請連上網路後再試')" style="background:rgba(255,255,255,.25);color:#fff;border:none;border-radius:8px;padding:5px 12px;font-size:12px;font-weight:700;cursor:pointer">🛍 官網</button></div>
+  <div class="header-right">
+    <div class="header-date" id="header-date"></div>
+    <div class="header-user" id="header-user">未打卡</div>
+    <button class="hbtn" onclick="refreshAll()">↻</button>
+    <button class="hbtn" onclick="showClock()">打卡</button>
+  </div>
+</div>
+
+<div class="nav">
+  <button class="nav-btn active" onclick="switchPage('sales')" id="nav-sales"><span class="nav-icon">🛒</span>銷售</button>
+  <button class="nav-btn" onclick="switchPage('inventory')" id="nav-inventory"><span class="nav-icon">📦</span>庫存</button>
+  <button class="nav-btn" onclick="switchPage('inout')" id="nav-inout"><span class="nav-icon">🔄</span>出入庫</button>
+  <button class="nav-btn" onclick="switchPage('report')" id="nav-report"><span class="nav-icon">📊</span>報表</button>
+  <button class="nav-btn" onclick="switchPage('settings')" id="nav-settings"><span class="nav-icon">⚙️</span>設定</button>
+</div>
+
+<!-- 銷售頁 -->
+<div id="page-sales" class="page active">
+  <div class="cat-tabs">
+    <button class="cat-tab active" onclick="setCat('99')" id="cat-99">豆腐餅 $99</button>
+    <button class="cat-tab" onclick="setCat('149')" id="cat-149">魚豆腐餅 $149</button>
+    <button class="cat-tab" onclick="setCat('gift')" id="cat-gift">禮盒</button>
+    <button class="cat-tab" onclick="setCat('emp')" id="cat-emp" style="border-color:#2E7D4F;color:#2E7D4F">🏷 員購</button>
+    <button class="cat-tab" onclick="setCat('app')" id="cat-app" style="border-color:#1565C0;color:#1565C0">📱 百貨APP</button>
+  </div>
+  <div id="zone-99">
+    <div style="font-size:12px;font-weight:600;color:var(--text2);margin-bottom:6px">活動選擇</div>
+    <div class="promo-scroll" id="promo-scroll-99"></div>
+    <div id="locked-banner-99" style="display:none" class="locked-banner">
+      <div class="locked-info" id="locked-info-99"></div>
+      <div class="locked-total" id="locked-total-99"></div>
+    </div>
+    <div class="flavor-grid" id="flavor-grid-99"></div>
+  </div>
+  <div id="zone-149" style="display:none">
+    <div style="font-size:12px;font-weight:600;color:var(--text2);margin-bottom:6px">活動選擇</div>
+    <div class="promo-scroll" id="promo-scroll-149"></div>
+    <div id="locked-banner-149" style="display:none" class="locked-banner">
+      <div class="locked-info" id="locked-info-149"></div>
+      <div class="locked-total" id="locked-total-149"></div>
+    </div>
+    <div class="flavor-grid" id="flavor-grid-149"></div>
+  </div>
+  <div id="zone-gift" style="display:none">
+    <div class="promo-scroll" id="promo-scroll-gift" style="margin-bottom:10px"></div>
+    <div class="gift-grid" id="gift-grid"></div>
+    <div class="card" style="margin-top:10px">
+      <div class="form-label">加購豆腐餅（禮盒加購價）</div>
+      <div class="two-col" style="margin-top:6px">
+        <div><select id="addon-flavor"><option value="">不加購</option></select></div>
+        <div><input type="number" id="addon-qty" value="1" min="1" max="1" placeholder="包數" readonly style="background:var(--bg);color:var(--text3);cursor:not-allowed;text-align:center;font-weight:700"></div>
+      </div>
+      <div style="font-size:11px;color:var(--text2);margin-top:6px">99系列→+$79/包　149系列→+$119/包</div>
+    </div>
+  </div>
+  <div id="zone-emp" style="display:none">
+    <div style="font-size:12px;font-weight:600;color:#2E7D4F;margin-bottom:6px;padding:8px 12px;background:#E6F4EC;border-radius:8px">🏷 員購專區 — 專屬優惠價格</div>
+    <div style="font-size:13px;font-weight:700;color:var(--text2);margin:12px 0 6px">🥚 豆腐餅系列</div>
+    <div class="promo-scroll" id="promo-scroll-emp99"></div>
+    <div id="locked-banner-emp99" style="display:none" class="locked-banner">
+      <div class="locked-info" id="locked-info-emp99"></div>
+      <div class="locked-total" id="locked-total-emp99"></div>
+    </div>
+    <div class="flavor-grid" id="flavor-grid-emp99"></div>
+    <div style="font-size:13px;font-weight:700;color:var(--text2);margin:16px 0 6px">🐟 魚豆腐餅系列</div>
+    <div class="promo-scroll" id="promo-scroll-emp149"></div>
+    <div id="locked-banner-emp149" style="display:none" class="locked-banner">
+      <div class="locked-info" id="locked-info-emp149"></div>
+      <div class="locked-total" id="locked-total-emp149"></div>
+    </div>
+    <div class="flavor-grid" id="flavor-grid-emp149"></div>
+    <div style="font-size:13px;font-weight:700;color:var(--text2);margin:16px 0 6px">🎁 禮盒系列</div>
+    <div class="promo-scroll" id="promo-scroll-empgift"></div>
+    <div class="gift-grid" id="emp-gift-grid"></div>
+    <div style="font-size:11px;color:var(--text2);margin-top:6px;padding:6px 10px;background:var(--bg);border-radius:6px">員購禮盒折扣待設定，目前以原價顯示</div>
+  </div>
+  <div id="zone-app" style="display:none">
+    <div style="font-size:12px;font-weight:600;color:#1565C0;margin-bottom:6px;padding:8px 12px;background:#E3F2FD;border-radius:8px">📱 百貨APP活動專區</div>
+    <div style="font-size:13px;font-weight:700;color:var(--text2);margin:12px 0 6px">🥚 豆腐餅系列</div>
+    <div class="promo-scroll" id="promo-scroll-app99"></div>
+    <div id="locked-banner-app99" style="display:none" class="locked-banner">
+      <div class="locked-info" id="locked-info-app99"></div>
+      <div class="locked-total" id="locked-total-app99"></div>
+    </div>
+    <div class="flavor-grid" id="flavor-grid-app99"></div>
+    <div style="font-size:13px;font-weight:700;color:var(--text2);margin:16px 0 6px">🐟 魚豆腐餅系列</div>
+    <div class="promo-scroll" id="promo-scroll-app149"></div>
+    <div id="locked-banner-app149" style="display:none" class="locked-banner">
+      <div class="locked-info" id="locked-info-app149"></div>
+      <div class="locked-total" id="locked-total-app149"></div>
+    </div>
+    <div class="flavor-grid" id="flavor-grid-app149"></div>
+    <div style="font-size:13px;font-weight:700;color:var(--text2);margin:16px 0 6px">🎁 禮盒系列</div>
+    <div class="promo-scroll" id="promo-scroll-appgift"></div>
+    <div class="gift-grid" id="app-gift-grid"></div>
+  </div>
+  <hr>
+  <div class="sec">試吃記錄</div>
+  <div class="card">
+    <div style="font-size:13px;color:var(--text2);margin-bottom:9px">今日試吃：<strong id="taste-total" style="color:var(--primary-dark);font-size:17px">0</strong> 包</div>
+    <div class="two-col" style="margin-bottom:8px">
+      <div><label class="form-label">口味</label><select id="taste-flavor"></select></div>
+      <div><label class="form-label">包數</label><input type="number" id="taste-qty" value="0" min="0"></div>
+    </div>
+    <button class="btn-primary" style="font-size:13px;padding:11px" onclick="addTaste()">記錄試吃</button>
+  </div>
+  <hr>
+  <button class="btn-ghost" onclick="openRefundModal()">🔄 退貨處理</button>
+</div>
+
+<!-- 庫存頁 -->
+<div id="page-inventory" class="page no-cart">
+  <div id="low-stock-area"></div>
+  <div style="font-size:12px;color:var(--text2);margin-bottom:10px">直接修改數字後按「調整」，系統會記錄誤差。</div>
+  <div class="sec">99元豆腐餅</div><div class="card" id="inv-99"></div>
+  <div class="sec">魚豆腐餅 $149</div><div class="card" id="inv-149"></div>
+  <div class="sec">禮盒</div><div class="card" id="inv-gift"></div>
+  <div class="sec">其他</div><div class="card" id="inv-other"></div>
+  <div class="sec">誤差調整記錄</div>
+  <div class="card" id="adj-log-list"><div class="empty">尚無調整記錄</div></div>
+</div>
+
+<!-- 出入庫頁 -->
+<div id="page-inout" class="page no-cart">
+  <div class="card">
+    <div class="form-row"><label class="form-label">品項</label><select id="io-item"></select></div>
+    <div class="two-col">
+      <div class="form-row"><label class="form-label">類型</label><select id="io-type"><option value="in">入庫</option><option value="out">出庫調整</option></select></div>
+      <div class="form-row"><label class="form-label">數量</label><input type="number" id="io-qty" value="1" min="1"></div>
+    </div>
+    <div class="form-row"><label class="form-label">備註</label><input type="text" id="io-note" placeholder="選填"></div>
+    <button class="btn-primary" onclick="submitIO()">確認送出</button>
+  </div>
+  <div class="sec">今日出入庫記錄</div>
+  <div id="io-log"></div>
+</div>
+
+<!-- 報表頁 -->
+<div id="page-report" class="page no-cart">
+  <div class="sec">今日</div>
+  <div class="stat-grid">
+    <div class="stat"><div class="stat-val" id="rpt-total">$0</div><div class="stat-label">銷售額</div><div class="stat-period">今日</div></div>
+    <div class="stat"><div class="stat-val" id="rpt-orders">0</div><div class="stat-label">筆數</div><div class="stat-period">今日</div></div>
+    <div class="stat"><div class="stat-val" id="rpt-taste">0</div><div class="stat-label">試吃</div><div class="stat-period">今日</div></div>
+  </div>
+  <div class="sec">整個檔期</div>
+  <div class="stat-grid">
+    <div class="stat"><div class="stat-val" id="rpt-ev-total">$0</div><div class="stat-label">銷售額</div><div class="stat-period" id="rpt-ev-period">檔期</div></div>
+    <div class="stat"><div class="stat-val" id="rpt-ev-orders">0</div><div class="stat-label">筆數</div><div class="stat-period">檔期</div></div>
+    <div class="stat"><div class="stat-val" id="rpt-ev-taste">0</div><div class="stat-label">試吃</div><div class="stat-period">檔期</div></div>
+  </div>
+  <div class="card"><div class="sh">今日銷售排行</div><div id="rpt-rank-today"><div class="empty">尚無資料</div></div></div>
+  <div class="card"><div class="sh">檔期銷售排行</div><div id="rpt-rank-event"><div class="empty">尚無資料</div></div></div>
+  <div class="card">
+    <div class="sh">自訂區間查詢</div>
+    <div class="date-range-row">
+      <div><label class="form-label">開始</label><input type="date" id="range-start"></div>
+      <div><label class="form-label">結束</label><input type="date" id="range-end"></div>
+      <button class="btn-query" onclick="calcRange()">查詢</button>
+    </div>
+    <div id="range-result" style="display:none"><div id="range-summary"></div></div>
+  </div>
+  <div class="card">
+    <div class="sh">打卡記錄 🔐</div>
+    <button class="btn-ghost" style="margin-bottom:8px" onclick="requirePwd('clock')">查看打卡記錄</button>
+    <div id="clock-log-area" style="display:none"><div id="clock-log-list"></div></div>
+  </div>
+  <div class="card">
+    <div class="sh">人員操作記錄 🔐</div>
+    <button class="btn-ghost" style="margin-bottom:8px" onclick="requirePwd('oplog')">查看操作記錄</button>
+    <div id="oplog-area" style="display:none"><div id="oplog-list"></div></div>
+  </div>
+  <div class="card"><div class="sh">今日完整記錄</div><div id="rpt-log"></div></div>
+  <hr>
+  <div class="backup-box">
+    <div class="sh" style="margin-bottom:6px">💾 資料備份與還原</div>
+    <div style="font-size:12px;color:var(--text2);margin-bottom:12px">建議每天下班前匯出一次，存到手機或電腦。平板損壞時可用備份檔還原。</div>
+    <button class="btn-primary" style="font-size:14px;padding:12px;margin-bottom:10px" onclick="exportBackup()">📥 匯出備份（下載檔案）</button>
+    <div style="font-size:12px;color:var(--text2);margin-bottom:6px">選擇備份檔案還原：</div>
+    <input type="file" id="restore-file" accept=".json" onchange="importBackup(event)" style="font-size:13px;padding:8px;border:1.5px solid var(--border);border-radius:var(--radius-sm);background:#fff;">
+  </div>
+  <hr>
+  <button class="btn-warn" onclick="requirePwd('reset')">🔐 完整重置（檔期結束後使用）</button>
+</div>
+
+<!-- 設定頁 -->
+<div id="page-settings" class="page no-cart">
+  <div class="card">
+    <div class="sh">人員名單</div>
+    <div id="staff-list-settings"></div>
+    <div style="display:flex;gap:8px;margin-top:10px">
+      <input type="text" id="new-staff-name" placeholder="新增人員姓名" style="flex:1">
+      <button class="btn-sm-ok" onclick="addStaff()">新增</button>
+    </div>
+  </div>
+  <div class="card">
+    <div class="sh">🔐 管理員密碼設定</div>
+    <div class="form-row"><label class="form-label">請先輸入目前密碼（老闆或主管）</label><input type="password" id="pwd-current" placeholder="輸入目前密碼"></div>
+    <div id="pwd-verify-error" style="color:var(--danger);font-size:12px;margin-bottom:8px;display:none">❌ 密碼錯誤，請重新輸入</div>
+    <div class="two-col">
+      <div class="form-row"><label class="form-label">新老闆密碼</label><input type="password" id="pwd-boss" placeholder="留空則不更改"></div>
+      <div class="form-row"><label class="form-label">新主管密碼</label><input type="password" id="pwd-manager" placeholder="留空則不更改"></div>
+    </div>
+    <button class="btn-primary" style="font-size:13px;padding:11px" onclick="savePwds()">儲存密碼</button>
+  </div>
+  <div class="card">
+    <div class="sh">品項管理</div>
+    <div id="items-manage-list"></div>
+    <button class="btn-primary" style="margin-top:10px;font-size:13px;padding:11px" onclick="saveItemEdits()">儲存修改</button>
+  </div>
+  <div class="card">
+    <div class="sh">新增品項</div>
+    <div class="form-row"><label class="form-label">品名</label><input type="text" id="new-name" placeholder="例：太陽餅禮盒(6入)"></div>
+    <div class="two-col">
+      <div class="form-row"><label class="form-label">分類</label>
+        <select id="new-group"><option value="99">豆腐餅$99</option><option value="149">魚豆腐餅$149</option><option value="gift">禮盒</option><option value="other">其他</option></select>
+      </div>
+      <div class="form-row"><label class="form-label">單位</label>
+        <select id="new-unit"><option value="包">包</option><option value="盒">盒</option><option value="個">個</option></select>
+      </div>
+    </div>
+    <div class="two-col">
+      <div class="form-row"><label class="form-label">售價（0=待定）</label><input type="number" id="new-price" value="0" min="0"></div>
+      <div class="form-row"><label class="form-label">低庫存警戒</label><input type="number" id="new-low" value="5" min="1"></div>
+    </div>
+    <button class="btn-primary" style="font-size:13px;padding:11px" onclick="addNewItem()">新增品項</button>
+  </div>
+  <div class="card">
+    <div class="sh">活動管理</div>
+    <div id="promo-manage-list"></div>
+  </div>
+  <div class="card">
+    <div class="sh">新增活動</div>
+    <div class="form-row"><label class="form-label">活動名稱</label><input type="text" id="promo-name" placeholder="例：買8送3"></div>
+    <div class="form-row"><label class="form-label">適用品類</label>
+      <select id="promo-group"><option value="99">豆腐餅$99</option><option value="149">魚豆腐餅$149</option><option value="both">99+149都適用</option><option value="gift">禮盒</option><option value="all">全部商品</option></select>
+    </div>
+    <div class="form-row"><label class="form-label">規則類型</label>
+      <select id="promo-type" onchange="togglePromoFields()">
+        <option value="buySend">買X送Y（付費包數+贈送包數）</option>
+        <option value="fixedPrice">任X包＝固定金額</option>
+        <option value="discount">打折（例：85折）</option>
+        <option value="discountAmt">每包折扣金額（例：每包少$20）</option>
+        <option value="minSpend">滿額折扣（例：滿$500折$50）</option>
+        <option value="freeGift">滿額送贈品（客人自選，自動扣庫存）</option>
+      </select>
+    </div>
+    <div id="promo-fields-buySend">
+      <div class="two-col">
+        <div class="form-row"><label class="form-label">付費X包</label><input type="number" id="promo-buy" value="10" min="1"></div>
+        <div class="form-row"><label class="form-label">送Y包</label><input type="number" id="promo-send" value="3" min="0"></div>
+      </div>
+      <div class="form-row"><label class="form-label">活動總價（$）</label><input type="number" id="promo-total-price" placeholder="例：990" min="0"></div>
+    </div>
+    <div id="promo-fields-fixedPrice" style="display:none">
+      <div class="two-col">
+        <div class="form-row"><label class="form-label">任X包</label><input type="number" id="promo-fixed-qty" value="2" min="1"></div>
+        <div class="form-row"><label class="form-label">固定金額（$）</label><input type="number" id="promo-fixed-total" value="169" min="0"></div>
+      </div>
+    </div>
+    <div id="promo-fields-discount" style="display:none">
+      <div class="form-row"><label class="form-label">折數（例：85折輸入85）</label><input type="number" id="promo-discount-pct" value="85" min="1" max="99"></div>
+    </div>
+    <div id="promo-fields-discountAmt" style="display:none">
+      <div class="form-row"><label class="form-label">每包折扣金額（$）</label><input type="number" id="promo-discount-amt" value="20" min="1"></div>
+    </div>
+    <div id="promo-fields-minSpend" style="display:none">
+      <div class="two-col">
+        <div class="form-row"><label class="form-label">滿額門檻（$）</label><input type="number" id="promo-min-spend" value="500" min="1"></div>
+        <div class="form-row"><label class="form-label">折扣金額（$）</label><input type="number" id="promo-min-discount" value="50" min="1"></div>
+      </div>
+    </div>
+    <div id="promo-fields-freeGift" style="display:none">
+      <div class="two-col">
+        <div class="form-row"><label class="form-label">滿額門檻（$）</label><input type="number" id="promo-gift-min" value="500" min="1"></div>
+        <div class="form-row"><label class="form-label">贈送包數</label><input type="number" id="promo-gift-qty" value="1" min="1"></div>
+      </div>
+      <div style="font-size:12px;color:var(--text2);margin-top:4px">滿門檻即贈，可疊加（滿$1000送2包），結帳時客人自選口味並自動扣庫存</div>
+    </div>
+    <button class="btn-primary" style="font-size:13px;padding:11px" onclick="addCustomPromo()">新增活動</button>
+  </div>
+  <div class="card">
+    <div class="sh">新增員購活動</div>
+    <div class="form-row"><label class="form-label">活動名稱</label><input type="text" id="emp-promo-name" placeholder="例：買6送3"></div>
+    <div class="form-row"><label class="form-label">適用品類</label>
+      <select id="emp-promo-group"><option value="emp99">員購-豆腐餅</option><option value="emp149">員購-魚豆腐餅</option><option value="empgift">員購-禮盒</option><option value="empall">全部員購</option><option value="app99">APP-豆腐餅</option><option value="app149">APP-魚豆腐餅</option><option value="appgift">APP-禮盒</option><option value="appall">全部APP</option></select>
+    </div>
+    <div class="form-row"><label class="form-label">規則類型</label>
+      <select id="emp-promo-type" onchange="toggleEmpPromoFields()">
+        <option value="normal">單包價</option>
+        <option value="buySend">買X送Y（付費包數+贈送包數）</option>
+        <option value="fixedPrice">任X包＝固定金額</option>
+        <option value="discount">打折（例：85折）</option>
+        <option value="discountAmt">每包折扣金額（例：每包少$20）</option>
+        <option value="minSpend">滿額折扣（例：滿$500折$50）</option>
+        <option value="freeGift">滿額送贈品（客人自選，自動扣庫存）</option>
+      </select>
+    </div>
+    <div id="emp-promo-fields-normal">
+      <div class="form-row"><label class="form-label">單包員購價（$）</label><input type="number" id="emp-promo-price" value="79" min="1"></div>
+    </div>
+    <div id="emp-promo-fields-buySend" style="display:none">
+      <div class="two-col">
+        <div class="form-row"><label class="form-label">付費X包</label><input type="number" id="emp-promo-buy" value="10" min="1"></div>
+        <div class="form-row"><label class="form-label">送Y包</label><input type="number" id="emp-promo-send" value="3" min="0"></div>
+      </div>
+      <div class="form-row"><label class="form-label">活動總價（$）</label><input type="number" id="emp-promo-total" placeholder="例：990" min="0"></div>
+    </div>
+    <div id="emp-promo-fields-fixedPrice" style="display:none">
+      <div class="two-col">
+        <div class="form-row"><label class="form-label">任X包</label><input type="number" id="emp-promo-fixed-qty" value="2" min="1"></div>
+        <div class="form-row"><label class="form-label">固定金額（$）</label><input type="number" id="emp-promo-fixed-total" value="150" min="0"></div>
+      </div>
+    </div>
+    <div id="emp-promo-fields-discount" style="display:none">
+      <div class="form-row"><label class="form-label">折數（例：85折輸入85）</label><input type="number" id="emp-promo-discount-pct" value="85" min="1" max="99"></div>
+    </div>
+    <div id="emp-promo-fields-discountAmt" style="display:none">
+      <div class="form-row"><label class="form-label">每包折扣金額（$）</label><input type="number" id="emp-promo-discount-amt" value="20" min="1"></div>
+    </div>
+    <div id="emp-promo-fields-minSpend" style="display:none">
+      <div class="two-col">
+        <div class="form-row"><label class="form-label">滿額門檻（$）</label><input type="number" id="emp-promo-min-spend" value="500" min="1"></div>
+        <div class="form-row"><label class="form-label">折扣金額（$）</label><input type="number" id="emp-promo-min-discount" value="50" min="1"></div>
+      </div>
+    </div>
+    <div id="emp-promo-fields-freeGift" style="display:none">
+      <div class="two-col">
+        <div class="form-row"><label class="form-label">滿額門檻（$）</label><input type="number" id="emp-promo-gift-min" value="500" min="1"></div>
+        <div class="form-row"><label class="form-label">贈送包數</label><input type="number" id="emp-promo-gift-qty" value="1" min="1"></div>
+      </div>
+    </div>
+    <button class="btn-primary" style="font-size:13px;padding:11px" onclick="addEmpPromo()">新增員購活動</button>
+  </div>
+  <div class="card">
+    <div class="sh">新增百貨APP活動</div>
+    <div class="form-row"><label class="form-label">活動名稱</label><input type="text" id="app-promo-name" placeholder="例：好康卷買3送1"></div>
+    <div class="form-row"><label class="form-label">適用品類</label>
+      <select id="app-promo-group"><option value="app99">APP-豆腐餅</option><option value="app149">APP-魚豆腐餅</option><option value="appgift">APP-禮盒</option><option value="appall">全部APP</option></select>
+    </div>
+    <div class="form-row"><label class="form-label">規則類型</label>
+      <select id="app-promo-type" onchange="toggleAppPromoFields()">
+        <option value="buySend">買X送Y（付費包數+贈送包數）</option>
+        <option value="fixedPrice">任X包＝固定金額</option>
+        <option value="normal">單包價</option>
+        <option value="discount">打折（例：85折）</option>
+        <option value="discountAmt">每包折扣金額（例：每包少$20）</option>
+        <option value="minSpend">滿額折扣（例：滿$500折$50）</option>
+        <option value="freeGift">滿額送贈品</option>
+      </select>
+    </div>
+    <div id="app-promo-fields-buySend">
+      <div class="two-col">
+        <div class="form-row"><label class="form-label">付費X包</label><input type="number" id="app-promo-buy" value="3" min="1"></div>
+        <div class="form-row"><label class="form-label">送Y包</label><input type="number" id="app-promo-send" value="1" min="0"></div>
+      </div>
+      <div class="form-row"><label class="form-label">活動總價（$）留空則自動計算</label><input type="number" id="app-promo-total" placeholder="選填" min="0"></div>
+    </div>
+    <div id="app-promo-fields-fixedPrice" style="display:none">
+      <div class="two-col">
+        <div class="form-row"><label class="form-label">任X包</label><input type="number" id="app-promo-fixed-qty" value="2" min="1"></div>
+        <div class="form-row"><label class="form-label">固定金額（$）</label><input type="number" id="app-promo-fixed-total" value="169" min="0"></div>
+      </div>
+    </div>
+    <div id="app-promo-fields-normal" style="display:none">
+      <div class="form-row"><label class="form-label">單包價（$）</label><input type="number" id="app-promo-price" value="99" min="1"></div>
+    </div>
+    <div id="app-promo-fields-discount" style="display:none">
+      <div class="form-row"><label class="form-label">折數（例：85折輸入85）</label><input type="number" id="app-promo-discount-pct" value="85" min="1" max="99"></div>
+    </div>
+    <div id="app-promo-fields-discountAmt" style="display:none">
+      <div class="form-row"><label class="form-label">每包折扣金額（$）</label><input type="number" id="app-promo-discount-amt" value="20" min="1"></div>
+    </div>
+    <div id="app-promo-fields-minSpend" style="display:none">
+      <div class="two-col">
+        <div class="form-row"><label class="form-label">滿額門檻（$）</label><input type="number" id="app-promo-min-spend" value="500" min="1"></div>
+        <div class="form-row"><label class="form-label">折扣金額（$）</label><input type="number" id="app-promo-min-discount" value="50" min="1"></div>
+      </div>
+    </div>
+    <div id="app-promo-fields-freeGift" style="display:none">
+      <div class="two-col">
+        <div class="form-row"><label class="form-label">滿額門檻（$）</label><input type="number" id="app-promo-gift-min" value="500" min="1"></div>
+        <div class="form-row"><label class="form-label">贈送包數</label><input type="number" id="app-promo-gift-qty" value="1" min="1"></div>
+      </div>
+    </div>
+    <button class="btn-primary" style="font-size:13px;padding:11px" onclick="addAppPromo()">新增APP活動</button>
+  </div>
+  <div class="card">
+    <div class="sh">基本設定</div>
+    <div class="two-col" style="margin-bottom:10px">
+      <div><label class="form-label">豆腐餅低庫存</label><input type="number" id="low-tofu" value="10" min="1"></div>
+      <div><label class="form-label">禮盒低庫存</label><input type="number" id="low-gift" value="3" min="1"></div>
+    </div>
+    <button class="btn-primary" style="font-size:13px;padding:11px;margin-bottom:12px" onclick="saveLowSettings()">儲存</button>
+    <div class="two-col">
+      <div><label class="form-label">檔期開始</label><input type="date" id="event-start"></div>
+      <div><label class="form-label">檔期結束</label><input type="date" id="event-end"></div>
+    </div>
+    <button class="btn-primary" style="font-size:13px;padding:11px;margin-top:8px" onclick="saveEventDates()">儲存檔期</button>
+  </div>
+</div>
+
+<!-- 購物車 Modal -->
+<div id="cart-modal" class="cart-modal" style="display:none">
+  <div class="cart-backdrop" onclick="closeCart()"></div>
+  <div class="cart-sheet"><div class="cart-handle"></div><div id="cart-sheet-content"></div></div>
+</div>
+
+<!-- 購物車浮動Bar -->
+<div class="cart-bar empty" id="cart-bar" onclick="openCart()">
+  <div class="cart-bar-left">
+    <div class="cart-bar-count" id="cart-bar-count">購物車是空的</div>
+    <div class="cart-bar-amount" id="cart-bar-amount">$0</div>
+  </div>
+  <button class="cart-bar-btn">查看結帳</button>
+</div>
+
+<script>
+const TODAY = new Date().toISOString().slice(0,10);
+document.getElementById('header-date').textContent = new Date().toLocaleDateString('zh-TW',{month:'long',day:'numeric',weekday:'short'});
+
+function ld(k,d){try{const v=localStorage.getItem(k);return v!=null?JSON.parse(v):d;}catch(e){return d;}}
+function sv(k,v){try{localStorage.setItem(k,JSON.stringify(v));}catch(e){}}
+
+const BASE_ITEMS = {
+  'tofu-99-yuan':   {name:'正經人豆腐餅 原味', price:99,  unit:'包',group:'99', low:10},
+  'tofu-99-jiao':   {name:'正經人豆腐餅 椒鹽', price:99,  unit:'包',group:'99', low:10},
+  'diao-149-yuan':  {name:'鯛魚豆腐餅 原味',   price:149, unit:'包',group:'149',low:10},
+  'diao-149-mei':   {name:'鯛魚豆腐餅 梅粉',   price:149, unit:'包',group:'149',low:10},
+  'gui-149-jiao':   {name:'鮭魚豆腐餅 椒鹽',   price:149, unit:'包',group:'149',low:10},
+  'gui-149-yuan':   {name:'鮭魚豆腐餅 原味',   price:149, unit:'包',group:'149',low:10},
+  'gui-149-jie':    {name:'鮭魚豆腐餅 芥末',   price:149, unit:'包',group:'149',low:10},
+  'gift-meat-10':   {name:'肉脯餅禮盒(10入)綜合',price:550,unit:'盒',group:'gift',low:3},
+  'gift-pine-10':   {name:'鳳梨酥禮盒(10入)綜合',price:500,unit:'盒',group:'gift',low:3},
+  'gift-pine-5-mei':{name:'鳳梨酥禮盒(5入)梅肉', price:250,unit:'盒',group:'gift',low:3},
+  'gift-pine-5-q':  {name:'鳳梨酥禮盒(5入)Q心',  price:250,unit:'盒',group:'gift',low:3},
+};
+const DEFAULT_BPapp99 = [];
+const DEFAULT_BPapp149 = [];
+const DEFAULT_BPappgift = [];
+
+const DEFAULT_BPemp99 = [
+  {id:'emp-n99',   label:'單包',    group:'emp99', type:'normal',  base:true, empPrice:79},
+  {id:'emp-b10-99',label:'買10送7', group:'emp99', type:'buySend', buy:10,send:7,totalPrice:990, base:true},
+];
+const DEFAULT_BPemp149 = [
+  {id:'emp-n149',   label:'單包',    group:'emp149',type:'normal',  base:true, empPrice:110},
+  {id:'emp-b10-149',label:'買10送7', group:'emp149',type:'buySend', buy:10,send:7,totalPrice:1490,base:true},
+];
+const DEFAULT_BP99 = [
+  {id:'n99',    label:'一般售價',group:'99', type:'normal',   base:true},
+  {id:'a1-99',  label:'任2包',  group:'99', type:'fixedPrice',fixedQty:2, fixedTotal:169,base:true},
+  {id:'b10-99', label:'買10送5',group:'99', type:'buySend',  buy:10,send:5,totalPrice:990, base:true},
+  {id:'b6-99',  label:'買6送2', group:'99', type:'buySend',  buy:6, send:2,totalPrice:594, base:true},
+  {id:'b4-99',  label:'買4送1', group:'99', type:'buySend',  buy:4, send:1,totalPrice:396, base:true},
+];
+const DEFAULT_BP149 = [
+  {id:'n149',    label:'一般售價',group:'149',type:'normal',   base:true},
+  {id:'a1-149',  label:'任2包', group:'149',type:'fixedPrice',fixedQty:2, fixedTotal:269,base:true},
+  {id:'b10-149', label:'買10送5',group:'149',type:'buySend', buy:10,send:5,totalPrice:1490,base:true},
+  {id:'b6-149',  label:'買6送2',group:'149',type:'buySend',  buy:6, send:2,totalPrice:894, base:true},
+  {id:'b4-149',  label:'買4送1',group:'149',type:'buySend',  buy:4, send:1,totalPrice:596, base:true},
+];
+// Load from localStorage so deletions persist
+function loadBasePromos() {
+  const deleted = ld('jzr_deleted_promos', []);
+  ['m99','m149'].forEach(id=>{if(!deleted.includes(id))deleted.push(id)});
+  sv('jzr_deleted_promos', deleted);
+  const filter = arr => arr.filter(p => !deleted.includes(p.id));
+  return {
+    BP99:      filter(DEFAULT_BP99),
+    BP149:     filter(DEFAULT_BP149),
+    BPemp99:   filter(DEFAULT_BPemp99),
+    BPemp149:  filter(DEFAULT_BPemp149),
+    BPapp99:   filter(DEFAULT_BPapp99),
+    BPapp149:  filter(DEFAULT_BPapp149),
+    BPappgift: filter(DEFAULT_BPappgift),
+  };
+}
+let {BP99, BP149, BPemp99, BPemp149, BPapp99, BPapp149, BPappgift} = loadBasePromos();
+
+let customItems  = ld('jzr_custom_items', {});
+let customPromos = ld('jzr_custom_promos', []).filter(p=>p.label!=='測試'&&!(p.label==='員購禮盒85折'&&p.group==='gift'));
+let promoStates  = ld('jzr_promo_states', {});
+let hiddenItems  = ld('jzr_hidden_items', {});
+let stock        = ld('jzr_stock', {});
+let allLogs      = ld('jzr_logs', []);
+let settings     = ld('jzr_settings', {lowTofu:10,lowGift:3,eventStart:'2025-06-13',eventEnd:'2025-06-30'});
+let staffList    = ld('jzr_staff', ['店員A','店員B']);
+let pwds         = ld('jzr_pwds', {boss:'1234',manager:'5678'});
+let clockLogs    = ld('jzr_clock', []);
+let currentStaff = ld('jzr_current_staff', '');
+let selStaff     = '';
+
+let ITEMS = {...BASE_ITEMS};
+Object.entries(customItems).forEach(([k,v]) => { ITEMS[k] = {...v, custom:true}; });
+Object.keys(ITEMS).forEach(k => { if(stock[k] == null) stock[k] = 0; });
+
+function getP99()  {
+  const base=BP99.map(p=>({...p,enabled:promoStates[p.id]!==false}));
+  const custom=customPromos.filter(p=>p.group==='99'||p.group==='both'||p.group==='all').map(p=>({...p,enabled:promoStates[p.id]!==false}));
+  return [...base,...custom];
+}
+function getP149() {
+  const base=BP149.map(p=>({...p,enabled:promoStates[p.id]!==false}));
+  const custom=customPromos.filter(p=>p.group==='149'||p.group==='both'||p.group==='all').map(p=>({...p,enabled:promoStates[p.id]!==false}));
+  return [...base,...custom];
+}
+function getGiftPromos() { return customPromos.filter(p=>(p.group==='gift'||p.group==='all')&&promoStates[p.id]!==false); }
+function k99()   { return Object.keys(ITEMS).filter(k=>ITEMS[k].group==='99'&&!hiddenItems[k]); }
+function k149()  { return Object.keys(ITEMS).filter(k=>ITEMS[k].group==='149'&&!hiddenItems[k]); }
+function kGift() { return Object.keys(ITEMS).filter(k=>ITEMS[k].group==='gift'&&!hiddenItems[k]); }
+
+let qty = {}; Object.keys(ITEMS).forEach(k=>qty[k]=0);
+let promo99='n99', promo149='n149';
+let giftQty = {};
+
+// STAFF / CLOCK
+function updateHeaderUser() { document.getElementById('header-user').textContent = currentStaff || '未打卡'; }
+
+function showClock() { selStaff=''; renderStaffPills(); document.getElementById('clock-modal').style.display='flex'; }
+function renderStaffPills() {
+  document.getElementById('staff-pills').innerHTML = staffList.map(s =>
+    '<span class="staff-pill '+(selStaff===s?'selected':'')+'" onclick="selStaff=\''+s+'\';renderStaffPills()">'+s+'</span>'
+  ).join('');
+}
+function clockAction(type) {
+  if(!selStaff){alert('請先選擇姓名');return;}
+  const time = new Date().toLocaleTimeString('zh-TW',{hour:'2-digit',minute:'2-digit'});
+  clockLogs.unshift({time,date:TODAY,staff:selStaff,type});
+  sv('jzr_clock', clockLogs);
+  if(type==='in'){currentStaff=selStaff;sv('jzr_current_staff',currentStaff);}
+  else{currentStaff='';sv('jzr_current_staff','');}
+  updateHeaderUser();
+  allLogs.unshift({time,date:TODAY,type:'clock',staff:selStaff,desc:selStaff+(type==='in'?' 上班':' 下班')+'打卡'});
+  saveAll();
+  document.getElementById('clock-modal').style.display='none';
+  alert('✓ '+selStaff+(type==='in'?' 上班':' 下班')+'打卡成功！'+time);
+}
+
+// PASSWORD
+let pwdCB = null;
+function requirePwd(action) {
+  pwdCB = action;
+  document.getElementById('pwd-input').value='';
+  document.getElementById('pwd-error').style.display='none';
+  document.getElementById('pwd-modal').style.display='flex';
+  setTimeout(()=>document.getElementById('pwd-input').focus(),100);
+}
+function closePwd() { document.getElementById('pwd-modal').style.display='none'; pwdCB=null; }
+function checkPwd() {
+  const val = document.getElementById('pwd-input').value;
+  if(val===pwds.boss||val===pwds.manager) {
+    document.getElementById('pwd-modal').style.display='none';
+    if(pwdCB==='reset') doReset();
+    else if(pwdCB==='clock') showClockLog();
+    else if(pwdCB==='oplog') showOpLog();
+    pwdCB=null;
+  } else {
+    document.getElementById('pwd-error').style.display='block';
+    document.getElementById('pwd-input').value='';
+  }
+}
+function showClockLog() {
+  document.getElementById('clock-log-area').style.display='block';
+  document.getElementById('clock-log-list').innerHTML = clockLogs.length ?
+    clockLogs.map(l=>'<div class="log-row"><span class="log-time">'+l.date+'<br>'+l.time+'</span><div class="log-body"><span class="log-tag tag-clock">'+(l.type==='in'?'上班':'下班')+'</span>'+l.staff+'</div></div>').join('') :
+    '<div class="empty">尚無打卡記錄</div>';
+}
+function showOpLog() {
+  document.getElementById('oplog-area').style.display='block';
+  const ops = allLogs.filter(l=>['sale','refund','adj','in','out'].includes(l.type));
+  const tagMap = {sale:'tag-sale',refund:'tag-refund',adj:'tag-adj',in:'tag-in',out:'tag-out'};
+  const labelMap = {sale:'銷售',refund:'退貨',adj:'調整',in:'入庫',out:'出庫'};
+  document.getElementById('oplog-list').innerHTML = ops.length ?
+    ops.map(l=>'<div class="log-row"><span class="log-time">'+l.date+'<br>'+l.time+'</span><div class="log-body"><span class="log-tag '+tagMap[l.type]+'">'+labelMap[l.type]+'</span>'+(l.staff?'['+l.staff+'] ':'')+l.desc+'</div></div>').join('') :
+    '<div class="empty">尚無記錄</div>';
+}
+
+// NAV
+function switchPage(id) {
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById('page-'+id).classList.add('active');
+  document.getElementById('nav-'+id).classList.add('active');
+  document.getElementById('cart-bar').style.display = id==='sales'?'flex':'none';
+  if(id==='inventory'){renderInventory();}
+  if(id==='report'){renderReport();}
+  if(id==='inout'){renderIOSelect();renderIOLog();}
+  if(id==='settings'){renderSettingsPage();}
+}
+
+// CAT TABS
+function setCat(cat) {
+  ['99','149','gift','emp','app'].forEach(c=>{
+    document.getElementById('cat-'+c).classList.toggle('active',c===cat);
+    document.getElementById('zone-'+c).style.display=c===cat?'block':'none';
+    if(c==='emp'){
+      const btn=document.getElementById('cat-emp');
+      btn.style.borderColor=c===cat?'#2E7D4F':'';
+      btn.style.color=c===cat?'#fff':'#2E7D4F';
+      btn.style.background=c===cat?'#2E7D4F':'';
+    }
+    if(c==='app'){
+      const btn=document.getElementById('cat-app');
+      btn.style.borderColor=c===cat?'#1565C0':'';
+      btn.style.color=c===cat?'#fff':'#1565C0';
+      btn.style.background=c===cat?'#1565C0':'';
+    }
+  });
+  if(cat==='gift'){renderGiftGrid();renderAddonSelect();}
+  if(cat==='emp'){renderEmpZone();}
+  if(cat==='app'){renderAppZone();}
+}
+
+// PROMO
+function lockedQty(p) {
+  if(!p||p.type==='normal') return null;
+  if(p.type==='fixedPrice') return p.fixedQty;
+  if(p.type==='buySend') return p.buy+p.send;
+  return null;
+}
+function promoTotal(p, up, t) {
+  if(!p||t===0) return t*up;
+  if(p.type==='normal') return t*up;
+  if(p.type==='fixedPrice') { const s=Math.floor(t/p.fixedQty),r=t%p.fixedQty; return s*p.fixedTotal+r*up; }
+  if(p.type==='buySend') { const s=Math.floor(t/(p.buy+p.send)),r=t%(p.buy+p.send),rp=Math.min(r,p.buy); return s*(p.totalPrice||0)+rp*up; }
+  if(p.type==='discount') return Math.round(t*up*(p.discountPct||100)/100);
+  if(p.type==='discountAmt') return Math.max(0,t*(up-(p.discountAmt||0)));
+  return t*up;
+}
+// 滿額折扣與滿額送贈品：在 calcCartItems 中處理
+function calcMinSpendDiscount(p, subtotal) {
+  if(!p||p.type!=='minSpend') return 0;
+  return Math.floor(subtotal/(p.minSpend||1))*(p.minDiscount||0);
+}
+function calcFreeGiftCount(p, subtotal) {
+  if(!p||p.type!=='freeGift') return 0;
+  return Math.floor(subtotal/(p.giftMin||1))*(p.giftQty||1);
+}
+function promoLabel(p, up) {
+  if(!p) return '';
+  if(p.type==='normal') return '一般售價 $'+up+'/包';
+  if(p.type==='fixedPrice') return '任'+p.fixedQty+'包 $'+p.fixedTotal;
+  if(p.type==='buySend') return '買'+p.buy+'送'+p.send+' 共'+(p.buy+p.send)+'包 $'+(p.totalPrice||'?');
+  return p.label;
+}
+
+function renderPromos() {
+  const make = (promos, cid, curId, setFn, up) => {
+    document.getElementById(cid).innerHTML = promos.map(p => {
+      const ps = p.type==='normal'?'$'+up+'/包':p.type==='fixedPrice'?'$'+p.fixedTotal:'$'+(p.totalPrice||'?');
+      return '<button class="promo-pill '+(curId===p.id?'active':'')+' '+(p.enabled?'':'disabled')+'" onclick="'+setFn+'(\''+p.id+'\')">'+p.label+'<br><span class="pill-price">'+ps+'</span></button>';
+    }).join('');
+  };
+  make(getP99(),  'promo-scroll-99',  promo99,  'setPromo99',  99);
+  make(getP149(), 'promo-scroll-149', promo149, 'setPromo149', 149);
+}
+
+function setPromo99(id)  { const p=getP99().find(x=>x.id===id); if(!p||!p.enabled)return; promo99=id;  k99().forEach(k=>qty[k]=0);  renderPromos();renderGrid99();updateBanner99();updateCartBar(); }
+function setPromo149(id) { const p=getP149().find(x=>x.id===id);if(!p||!p.enabled)return; promo149=id; k149().forEach(k=>qty[k]=0); renderPromos();renderGrid149();updateBanner149();updateCartBar(); }
+
+function updateBanner99() {
+  const p=getP99().find(x=>x.id===promo99); const lq=lockedQty(p);
+  const t=k99().reduce((s,k)=>s+(qty[k]||0),0);
+  const b=document.getElementById('locked-banner-99');
+  if(!lq){b.style.display='none';return;}
+  b.style.display='flex';
+  document.getElementById('locked-info-99').textContent=promoLabel(p,99)+' — 已選'+t+'/'+lq+'包';
+  document.getElementById('locked-total-99').textContent='$'+Math.round(promoTotal(p,99,t));
+}
+function updateBanner149() {
+  const p=getP149().find(x=>x.id===promo149); const lq=lockedQty(p);
+  const t=k149().reduce((s,k)=>s+(qty[k]||0),0);
+  const b=document.getElementById('locked-banner-149');
+  if(!lq){b.style.display='none';return;}
+  b.style.display='flex';
+  document.getElementById('locked-info-149').textContent=promoLabel(p,149)+' — 已選'+t+'/'+lq+'包';
+  document.getElementById('locked-total-149').textContent='$'+Math.round(promoTotal(p,149,t));
+}
+
+function renderGrid99() {
+  const keys=k99(); const p=getP99().find(x=>x.id===promo99);
+  const lq=lockedQty(p); const t=keys.reduce((s,k)=>s+(qty[k]||0),0);
+  document.getElementById('flavor-grid-99').innerHTML = keys.map(k => {
+    const s=stock[k]||0; const atMax=lq&&t>=lq&&!(qty[k]>0);
+    const sn=ITEMS[k].name;
+    return '<div class="flavor-card '+(s===0?'zero':atMax?'lzero':'')+'"><div class="f-name">'+sn+'</div><div class="f-stock">'+s+'包</div><div class="qty-row"><button class="qty-btn" onclick="chg99(\''+k+'\',-1)">−</button><span class="qty-num" id="q-'+k+'">'+(qty[k]||0)+'</span><button class="qty-btn" onclick="chg99(\''+k+'\',1)">+</button></div></div>';
+  }).join('');
+}
+function renderGrid149() {
+  const keys=k149(); const p=getP149().find(x=>x.id===promo149);
+  const lq=lockedQty(p); const t=keys.reduce((s,k)=>s+(qty[k]||0),0);
+  document.getElementById('flavor-grid-149').innerHTML = keys.map(k => {
+    const s=stock[k]||0; const atMax=lq&&t>=lq&&!(qty[k]>0);
+    const sn=ITEMS[k].name;
+    return '<div class="flavor-card '+(s===0?'zero':atMax?'lzero':'')+'"><div class="f-name">'+sn+'</div><div class="f-stock">'+s+'包</div><div class="qty-row"><button class="qty-btn" onclick="chg149(\''+k+'\',-1)">−</button><span class="qty-num" id="q-'+k+'">'+(qty[k]||0)+'</span><button class="qty-btn" onclick="chg149(\''+k+'\',1)">+</button></div></div>';
+  }).join('');
+}
+
+function chg99(k,d) {
+  const p=getP99().find(x=>x.id===promo99); const lq=lockedQty(p);
+  const t=k99().reduce((s,k2)=>s+(qty[k2]||0),0);
+  const nv=(qty[k]||0)+d; if(nv<0)return;
+  if(nv>(stock[k]||0)){alert('庫存不足！現有：'+(stock[k]||0)+'包');return;}
+  if(lq&&d>0&&t>=lq){alert('此活動限選'+lq+'包，已達上限');return;}
+  qty[k]=nv; const el=document.getElementById('q-'+k); if(el)el.textContent=nv;
+  updateBanner99(); renderGrid99(); updateCartBar();
+}
+function chg149(k,d) {
+  const p=getP149().find(x=>x.id===promo149); const lq=lockedQty(p);
+  const t=k149().reduce((s,k2)=>s+(qty[k2]||0),0);
+  const nv=(qty[k]||0)+d; if(nv<0)return;
+  if(nv>(stock[k]||0)){alert('庫存不足！現有：'+(stock[k]||0)+'包');return;}
+  if(lq&&d>0&&t>=lq){alert('此活動限選'+lq+'包，已達上限');return;}
+  qty[k]=nv; const el=document.getElementById('q-'+k); if(el)el.textContent=nv;
+  updateBanner149(); renderGrid149(); updateCartBar();
+}
+
+let giftPromoId=null;
+function getGiftPromoLabel(p) {
+  if(p.type==='discount') return p.discountPct+'折';
+  if(p.type==='discountAmt') return '折$'+p.discountAmt;
+  if(p.type==='fixedPrice') return '$'+p.fixedTotal;
+  if(p.type==='buySend') return '買'+p.buy+'送'+p.send+(p.totalPrice?'/$'+p.totalPrice:'');
+  return '';
+}
+function getGiftPromoPrice(k) {
+  if(!giftPromoId) return ITEMS[k].price;
+  const p=customPromos.find(x=>x.id===giftPromoId);
+  if(!p) return ITEMS[k].price;
+  if(p.type==='discount') return Math.round(ITEMS[k].price*(p.discountPct||100)/100);
+  if(p.type==='discountAmt') return Math.max(0,ITEMS[k].price-(p.discountAmt||0));
+  if(p.type==='fixedPrice') return p.fixedTotal||ITEMS[k].price;
+  return ITEMS[k].price;
+}
+function setGiftPromo(id) {
+  giftPromoId=giftPromoId===id?null:id;
+  renderGiftGrid();
+  updateCartBar();
+}
+function renderGiftGrid() {
+  const giftPromos=getGiftPromos();
+  const promoEl=document.getElementById('promo-scroll-gift');
+  if(promoEl){
+    promoEl.innerHTML=giftPromos.length
+      ? '<div style="font-size:12px;color:var(--primary);font-weight:600;margin-bottom:4px;width:100%">請點選優惠方案</div>'+giftPromos.map(p=>{
+          const active=giftPromoId===p.id;
+          return `<button class="promo-pill ${active?'active':''}" onclick="setGiftPromo('${p.id}')">${p.label}<br><span class="pill-price">${getGiftPromoLabel(p)}</span></button>`;
+        }).join('')
+      : '';
+  }
+  document.getElementById('gift-grid').innerHTML = kGift().map(k => {
+    const item=ITEMS[k]; const s=stock[k]||0; const gq=giftQty[k]||0;
+    const empPrice=getGiftPromoPrice(k);
+    const priceDisplay=giftPromoId&&empPrice!==item.price
+      ? `<span style="color:var(--danger);font-weight:700">$${empPrice}</span> <span style="text-decoration:line-through;color:var(--text3);font-size:11px">$${item.price}</span>`
+      : (item.price?'$'+item.price.toLocaleString():'待定');
+    return '<div class="gift-card '+(s===0?'zero':'')+'"><div class="g-name">'+item.name+'</div><div class="g-price">'+priceDisplay+'</div><div class="g-stock">庫存：'+s+item.unit+'</div><div class="qty-row"><button class="qty-btn" onclick="chgGift(\''+k+'\',-1)">−</button><span class="qty-num" id="gq-'+k+'">'+gq+'</span><button class="qty-btn" onclick="chgGift(\''+k+'\',1)">+</button></div></div>';
+  }).join('');
+}
+function chgGift(k,d) {
+  const nv=(giftQty[k]||0)+d; if(nv<0)return;
+  if(nv>(stock[k]||0)){alert('庫存不足！現有：'+(stock[k]||0)+'盒');return;}
+  giftQty[k]=nv;
+  // 更新所有 gq- 元素（禮盒、員購、APP頁可能同時存在）
+  document.querySelectorAll('[id="gq-'+k+'"]').forEach(el=>el.textContent=nv);
+  // 如果員購頁開著，重新渲染禮盒區
+  const empZone=document.getElementById('zone-emp');
+  if(empZone&&empZone.style.display!=='none') renderEmpGiftGrid();
+  updateCartBar();
+}
+function renderAddonSelect() {
+  const keys=Object.keys(ITEMS).filter(k=>ITEMS[k].group==='99'||ITEMS[k].group==='149');
+  document.getElementById('addon-flavor').innerHTML = '<option value="">不加購</option>'+keys.map(k=>'<option value="'+k+'">'+ITEMS[k].name+'（庫存'+(stock[k]||0)+'）</option>').join('');
+}
+
+// CART
+function calcCartItems() {
+  const items=[];
+  const p99=getP99().find(x=>x.id===promo99)||getP99()[0];
+  const p149=getP149().find(x=>x.id===promo149)||getP149()[0];
+  const t99=k99().reduce((s,k)=>s+(qty[k]||0),0);
+  const t149=k149().reduce((s,k)=>s+(qty[k]||0),0);
+  if(t99>0){
+    k99().forEach(k=>{if(qty[k]>0)items.push({key:k,name:ITEMS[k].name,qty:qty[k],unit:'包',group:'99'});});
+    const free=p99.type==='buySend'?Math.floor(t99/(p99.buy+p99.send))*p99.send:0;
+    items.push({isPromo:true,label:'99系列活動 ('+p99.label+')',total:Math.round(promoTotal(p99,99,t99)),free,group:'99'});
+  }
+  if(t149>0){
+    k149().forEach(k=>{if(qty[k]>0)items.push({key:k,name:ITEMS[k].name,qty:qty[k],unit:'包',group:'149'});});
+    const free=p149.type==='buySend'?Math.floor(t149/(p149.buy+p149.send))*p149.send:0;
+    items.push({isPromo:true,label:'149系列活動 ('+p149.label+')',total:Math.round(promoTotal(p149,149,t149)),free,group:'149'});
+  }
+  kGift().forEach(k=>{
+    if((giftQty[k]||0)>0){
+      const giftZoneVisible=document.getElementById('zone-gift')?.style.display!=='none';
+      const empZoneVisible=document.getElementById('zone-emp')?.style.display!=='none';
+      let usePrice=ITEMS[k].price||0, tag='';
+      if(empZoneVisible&&empGiftPromoId){usePrice=getEmpGiftPrice(k);tag=' [員購]';}
+      else if(giftZoneVisible&&giftPromoId){usePrice=getGiftPromoPrice(k);tag='';}
+      items.push({key:k,name:ITEMS[k].name+tag,qty:giftQty[k],unit:'盒',subtotal:usePrice*giftQty[k],group:'gift'});
+    }
+  });
+  // emp zone
+  const pemp99=getEmpP99().find(x=>x.id===empPromo99)||getEmpP99()[0];
+  const pemp149=getEmpP149().find(x=>x.id===empPromo149)||getEmpP149()[0];
+  const te99=k99().reduce((s,k)=>s+(empQty99[k]||0),0);
+  const te149=k149().reduce((s,k)=>s+(empQty149[k]||0),0);
+  if(te99>0){
+    k99().forEach(k=>{if(empQty99[k]>0)items.push({key:k,name:ITEMS[k].name,qty:empQty99[k],unit:'包',group:'emp99'});});
+    const free=pemp99.type==='buySend'?Math.floor(te99/(pemp99.buy+pemp99.send))*pemp99.send:0;
+    items.push({isPromo:true,label:'員購 豆腐餅 ('+pemp99.label+')',total:Math.round(empPromoTotal(pemp99,99,te99)),free,group:'emp99'});
+  }
+  if(te149>0){
+    k149().forEach(k=>{if(empQty149[k]>0)items.push({key:k,name:ITEMS[k].name,qty:empQty149[k],unit:'包',group:'emp149'});});
+    const free=pemp149.type==='buySend'?Math.floor(te149/(pemp149.buy+pemp149.send))*pemp149.send:0;
+    items.push({isPromo:true,label:'員購 魚豆腐餅 ('+pemp149.label+')',total:Math.round(empPromoTotal(pemp149,149,te149)),free,group:'emp149'});
+  }
+  // APP zone
+  const ta99=k99().reduce((s,k)=>s+(appQty99[k]||0),0);
+  const ta149=k149().reduce((s,k)=>s+(appQty149[k]||0),0);
+  const pa99=getAppP99().find(x=>x.id===appPromo99);
+  const pa149=getAppP149().find(x=>x.id===appPromo149);
+  if(ta99>0){
+    k99().forEach(k=>{if(appQty99[k]>0)items.push({key:k,name:ITEMS[k].name,qty:appQty99[k],unit:'包',group:'app99'});});
+    const free=pa99&&pa99.type==='buySend'?Math.floor(ta99/(pa99.buy+pa99.send))*pa99.send:0;
+    const total=pa99?Math.round(empPromoTotal(pa99,99,ta99)):ta99*99;
+    items.push({isPromo:true,label:'APP活動 豆腐餅'+(pa99?' ('+pa99.label+')':''),total,free,group:'app99'});
+  }
+  if(ta149>0){
+    k149().forEach(k=>{if(appQty149[k]>0)items.push({key:k,name:ITEMS[k].name,qty:appQty149[k],unit:'包',group:'app149'});});
+    const free=pa149&&pa149.type==='buySend'?Math.floor(ta149/(pa149.buy+pa149.send))*pa149.send:0;
+    const total=pa149?Math.round(empPromoTotal(pa149,149,ta149)):ta149*149;
+    items.push({isPromo:true,label:'APP活動 魚豆腐餅'+(pa149?' ('+pa149.label+')':''),total,free,group:'app149'});
+  }
+  kGift().forEach(k=>{
+    if((appGiftQty[k]||0)>0){
+      const p=getAppPGift().find(x=>x.id===appGiftPromoId);
+      let usePrice=ITEMS[k].price;
+      if(p){if(p.type==='discount')usePrice=Math.round(ITEMS[k].price*(p.discountPct||100)/100);else if(p.type==='discountAmt')usePrice=Math.max(0,ITEMS[k].price-(p.discountAmt||0));}
+      items.push({key:k,name:ITEMS[k].name+' [APP]',qty:appGiftQty[k],unit:'盒',subtotal:usePrice*appGiftQty[k],group:'appgift'});
+    }
+  });
+  const ak=document.getElementById('addon-flavor')?.value;
+  const aq=parseInt(document.getElementById('addon-qty')?.value)||0;
+  if(ak&&aq>0)items.push({key:ak,name:'加購 '+ITEMS[ak].name,qty:aq,unit:'包',subtotal:(ITEMS[ak]?.price===99?79:119)*aq,group:'addon'});
+  // 全部商品活動（跨系列）
+  const allCustom=customPromos.filter(p=>p.group==='all'&&promoStates[p.id]!==false);
+  allCustom.forEach(p=>{
+    const sub=calcCartSubtotal(items);
+    if(p.type==='minSpend'){
+      const disc=calcMinSpendDiscount(p,sub);
+      if(disc>0) items.push({isPromo:true,label:p.label+' (滿$'+p.minSpend+'折$'+p.minDiscount+')',total:-disc,isDiscount:true,group:'all'});
+    } else if(p.type==='freeGift'){
+      const cnt=calcFreeGiftCount(p,sub);
+      if(cnt>0) items.push({isPromo:true,label:p.label+' 贈品×'+cnt,total:0,isFreeGift:true,freeGiftCount:cnt,group:'all'});
+    }
+  });
+  return items;
+}
+function calcCartSubtotal(items) {
+  return items.reduce((s,i)=>s+(i.isPromo?(i.total>0?i.total:0):i.subtotal!=null?i.subtotal:0),0);
+}
+function calcCartTotal() {
+  const items=calcCartItems();
+  return items.reduce((s,i)=>{
+    if(i.isPromo) return s+(i.total||0);
+    return s+(i.subtotal!=null?i.subtotal:0);
+  },0);
+}
+function updateCartBar() {
+  const items=calcCartItems(); const has=items.length>0;
+  document.getElementById('cart-bar').classList.toggle('empty',!has);
+  let count=0; items.forEach(i=>{if(!i.isPromo)count+=i.qty||0;});
+  document.getElementById('cart-bar-count').textContent=has?'共 '+count+' 件商品':'購物車是空的';
+  document.getElementById('cart-bar-amount').textContent='$'+calcCartTotal().toLocaleString();
+}
+function openCart() {
+  const items=calcCartItems(); if(!items.length)return;
+  const total=calcCartTotal();
+  let html='<div class="cart-sheet-title">購物清單</div>';
+  items.forEach(i=>{
+    if(i.isPromo){
+      if(i.isFreeGift){
+        html+='<div class="cart-free-row" style="background:var(--success-light);border-radius:8px;padding:8px;margin:4px 0"><span class="cart-free-label" style="color:var(--success)">🎁 '+i.label+'（結帳後選口味）</span><span class="cart-free-price" style="color:var(--success)">免費</span></div>';
+      } else if(i.isDiscount){
+        html+='<div class="cart-free-row" style="color:var(--danger)"><span class="cart-free-label">🏷 '+i.label+'</span><span class="cart-free-price">-$'+Math.abs(i.total).toLocaleString()+'</span></div>';
+      } else {
+        html+='<div class="cart-free-row"><span class="cart-free-label">↳ '+i.label+(i.free>0?' +贈'+i.free+'包':'')+'</span><span class="cart-free-price">$'+i.total.toLocaleString()+'</span></div>';
+      }
+    } else {
+      html+='<div class="cart-item-row"><div class="cart-item-name">'+i.name+'<br><span style="font-size:11px;color:var(--text3)">'+i.qty+' '+i.unit+'</span></div>'+(i.subtotal!=null?'<div class="cart-item-price">$'+i.subtotal.toLocaleString()+'</div>':'')+'</div>';
+    }
+  });
+  html+='<div class="cart-total-row"><span>應付總額</span><span class="cart-total-amount">$'+total.toLocaleString()+'</span></div>';
+  html+='<button class="btn-primary" style="font-size:16px" onclick="proceedCheckout()">確認，告知客人金額</button>';
+  html+='<button class="btn-ghost" onclick="closeCart()">繼續選購</button>';
+  html+='<button class="btn-ghost" onclick="clearAll()" style="color:var(--danger)">清空重算</button>';
+  document.getElementById('cart-sheet-content').innerHTML=html;
+  document.getElementById('cart-modal').style.display='flex';
+}
+function closeCart(){document.getElementById('cart-modal').style.display='none';}
+function proceedCheckout() {
+  const items=calcCartItems(); const total=calcCartTotal();
+  let html='<div class="confirm-wrap"><div style="font-size:14px;color:var(--text2);margin-bottom:6px">請告知客人總金額</div><div class="confirm-big">$'+total.toLocaleString()+'</div><div class="confirm-hint">憑此金額至 POS 結帳開發票</div><div class="confirm-items">';
+  items.forEach(i=>{
+    if(i.isPromo) html+='<div class="ci-row"><span>'+i.label+(i.free>0?' +贈'+i.free+'包':'')+'</span><span>$'+i.total.toLocaleString()+'</span></div>';
+    else if(i.subtotal!=null) html+='<div class="ci-row"><span>'+i.name+' ×'+i.qty+'</span><span>$'+i.subtotal.toLocaleString()+'</span></div>';
+    else html+='<div class="ci-row"><span>'+i.name+' ×'+i.qty+'包</span></div>';
+  });
+  html+='<div class="ci-row total-row"><span>合計</span><span>$'+total.toLocaleString()+'</span></div></div><button class="btn-primary" style="font-size:15px" onclick="completeSale()">完成結帳，扣除庫存</button><button class="btn-ghost" onclick="openCart()">返回修改</button></div>';
+  document.getElementById('cart-sheet-content').innerHTML=html;
+}
+function completeSale() {
+  const p99=getP99().find(x=>x.id===promo99)||getP99()[0];
+  const p149=getP149().find(x=>x.id===promo149)||getP149()[0];
+  const t99=k99().reduce((s,k)=>s+(qty[k]||0),0);
+  const t149=k149().reduce((s,k)=>s+(qty[k]||0),0);
+  const total=calcCartTotal();
+  const time=new Date().toLocaleTimeString('zh-TW',{hour:'2-digit',minute:'2-digit'});
+  const ts=getTodaySales(); let logParts=[];
+  k99().forEach(k=>{
+    if(qty[k]>0){
+      let d=qty[k];
+      if(p99.type==='buySend'&&t99>0){const sets=Math.floor(t99/(p99.buy+p99.send));d+=Math.round(sets*p99.send*(qty[k]/t99));}
+      stock[k]=Math.max(0,(stock[k]||0)-d);ts.items[k]=(ts.items[k]||0)+d;logParts.push(ITEMS[k].name+'×'+d);
+    }
+  });
+  k149().forEach(k=>{
+    if(qty[k]>0){
+      let d=qty[k];
+      if(p149.type==='buySend'&&t149>0){const sets=Math.floor(t149/(p149.buy+p149.send));d+=Math.round(sets*p149.send*(qty[k]/t149));}
+      stock[k]=Math.max(0,(stock[k]||0)-d);ts.items[k]=(ts.items[k]||0)+d;logParts.push(ITEMS[k].name+'×'+d);
+    }
+  });
+  kGift().forEach(k=>{
+    if((giftQty[k]||0)>0){stock[k]=Math.max(0,(stock[k]||0)-giftQty[k]);ts.items[k]=(ts.items[k]||0)+giftQty[k];logParts.push(ITEMS[k].name+'×'+giftQty[k]);}
+  });
+  // 員購扣庫存
+  const pemp99=getEmpP99().find(x=>x.id===empPromo99)||getEmpP99()[0];
+  const pemp149=getEmpP149().find(x=>x.id===empPromo149)||getEmpP149()[0];
+  const te99=k99().reduce((s,k)=>s+(empQty99[k]||0),0);
+  const te149=k149().reduce((s,k)=>s+(empQty149[k]||0),0);
+  k99().forEach(k=>{
+    if((empQty99[k]||0)>0){
+      let d=empQty99[k];
+      if(pemp99&&pemp99.type==='buySend'&&te99>0){const sets=Math.floor(te99/(pemp99.buy+pemp99.send));d+=Math.round(sets*pemp99.send*(empQty99[k]/te99));}
+      stock[k]=Math.max(0,(stock[k]||0)-d);ts.items[k]=(ts.items[k]||0)+d;logParts.push('[員購]'+ITEMS[k].name+'×'+d);
+    }
+  });
+  k149().forEach(k=>{
+    if((empQty149[k]||0)>0){
+      let d=empQty149[k];
+      if(pemp149&&pemp149.type==='buySend'&&te149>0){const sets=Math.floor(te149/(pemp149.buy+pemp149.send));d+=Math.round(sets*pemp149.send*(empQty149[k]/te149));}
+      stock[k]=Math.max(0,(stock[k]||0)-d);ts.items[k]=(ts.items[k]||0)+d;logParts.push('[員購]'+ITEMS[k].name+'×'+d);
+    }
+  });
+  const ak=document.getElementById('addon-flavor')?.value; const aq=parseInt(document.getElementById('addon-qty')?.value)||0;
+  if(ak&&aq>0){stock[ak]=Math.max(0,(stock[ak]||0)-aq);ts.items[ak]=(ts.items[ak]||0)+aq;logParts.push('加購'+ITEMS[ak].name+'×'+aq);}
+  ts.total+=total;ts.orders+=1;sv('jzr_sales_'+TODAY,ts);
+  allLogs.unshift({time,date:TODAY,type:'sale',staff:currentStaff,desc:'銷售：'+logParts.join('、')+' ／ $'+total});
+  saveAll();clearAll();closeCart();alert('✓ 完成！');
+}
+function clearAll() {
+  Object.keys(qty).forEach(k=>qty[k]=0); Object.keys(giftQty).forEach(k=>giftQty[k]=0);
+  Object.keys(empQty99).forEach(k=>empQty99[k]=0); Object.keys(empQty149).forEach(k=>empQty149[k]=0);
+  Object.keys(appQty99).forEach(k=>appQty99[k]=0); Object.keys(appQty149).forEach(k=>appQty149[k]=0); Object.keys(appGiftQty).forEach(k=>appGiftQty[k]=0);
+  promo99='n99'; promo149='n149'; empPromo99='emp-n99'; empPromo149='emp-n149'; empGiftPromoId=null; appPromo99=null; appPromo149=null; appGiftPromoId=null; giftPromoId=null;
+  renderPromos();renderGrid99();renderGrid149();renderGiftGrid();
+  updateBanner99();updateBanner149();updateCartBar();
+  // 重新渲染員購區
+  if(document.getElementById('zone-emp')&&document.getElementById('zone-emp').style.display!=='none'){
+    renderEmpZone();
+  }
+  const af=document.getElementById('addon-flavor');if(af)af.value='';
+  const aq=document.getElementById('addon-qty');if(aq)aq.value='1';
+  closeCart();
+}
+
+// TASTE
+function addTaste() {
+  const k=document.getElementById('taste-flavor').value;
+  const q=parseInt(document.getElementById('taste-qty').value)||1;
+  const time=new Date().toLocaleTimeString('zh-TW',{hour:'2-digit',minute:'2-digit'});
+  stock[k]=Math.max(0,(stock[k]||0)-q);
+  const t=getTodayTaste();t.total=(t.total||0)+q;sv('jzr_taste_'+TODAY,t);
+  allLogs.unshift({time,date:TODAY,type:'taste',staff:currentStaff,desc:'試吃：'+ITEMS[k].name+' × '+q+'包'});
+  saveAll();document.getElementById('taste-total').textContent=t.total;
+  document.getElementById('taste-qty').value='0';
+  alert('✓ 試吃已記錄');
+}
+
+// REFUND
+function openRefundModal() {
+  document.getElementById('refund-item').innerHTML=Object.entries(ITEMS).map(([k,v])=>'<option value="'+k+'">'+v.name+'</option>').join('');
+  document.getElementById('refund-modal').style.display='flex';
+}
+function submitRefund() {
+  const k=document.getElementById('refund-item').value;
+  const q=parseInt(document.getElementById('refund-qty').value)||1;
+  const amount=parseInt(document.getElementById('refund-amount').value)||0;
+  const note=document.getElementById('refund-note').value;
+  const time=new Date().toLocaleTimeString('zh-TW',{hour:'2-digit',minute:'2-digit'});
+  stock[k]=(stock[k]||0)+q;
+  const ts=getTodaySales();ts.total=Math.max(0,ts.total-amount);sv('jzr_sales_'+TODAY,ts);
+  allLogs.unshift({time,date:TODAY,type:'refund',staff:currentStaff,desc:'退貨：'+ITEMS[k].name+' × '+q+ITEMS[k].unit+'，退款$'+amount+(note?' ('+note+')':'')});
+  saveAll();document.getElementById('refund-modal').style.display='none';
+  alert('✓ 退貨完成！'+ITEMS[k].name+' 庫存已補回 '+q+' '+ITEMS[k].unit);
+}
+
+// INVENTORY
+function renderInventory() {
+  const makeRows = keys => keys.filter(k=>ITEMS[k]).map(k=>{
+    const item=ITEMS[k]; const s=stock[k]||0;
+    const low=item.group==='gift'||item.group==='other'?settings.lowGift:(item.low||settings.lowTofu);
+    return '<div class="inv-row"><div style="flex:1"><div class="inv-name">'+item.name+'</div><span class="badge '+(s===0?'badge-danger':s<=low?'badge-warn':'badge-ok')+'">'+(s===0?'售完':s<=low?'低庫存':'充足')+'</span></div><div style="display:flex;align-items:center;gap:6px"><input class="adj-input" type="number" id="adj-'+k+'" value="'+s+'" min="0"><button class="btn-sm-ok" onclick="adjustStock(\''+k+'\')">調整</button></div></div>';
+  }).join('');
+  let lowHtml='';
+  Object.keys(ITEMS).forEach(k=>{
+    const s=stock[k]||0; const item=ITEMS[k];
+    const low=item.group==='gift'||item.group==='other'?settings.lowGift:(item.low||settings.lowTofu);
+    if(s<=low) lowHtml+='<div class="alert '+(s===0?'alert-danger':'alert-warn')+'">⚠ '+item.name+' — '+(s===0?'已售完':'低庫存 '+s+item.unit)+'</div>';
+  });
+  document.getElementById('low-stock-area').innerHTML=lowHtml?'<div class="sec">庫存警示</div>'+lowHtml:'';
+  const c99=Object.keys(ITEMS).filter(k=>ITEMS[k].custom&&ITEMS[k].group==='99');
+  const c149=Object.keys(ITEMS).filter(k=>ITEMS[k].custom&&ITEMS[k].group==='149');
+  const cG=Object.keys(ITEMS).filter(k=>ITEMS[k].custom&&ITEMS[k].group==='gift');
+  const cO=Object.keys(ITEMS).filter(k=>ITEMS[k].custom&&ITEMS[k].group==='other');
+  document.getElementById('inv-99').innerHTML=makeRows(['tofu-99-yuan','tofu-99-jiao',...c99]);
+  document.getElementById('inv-149').innerHTML=makeRows(['diao-149-yuan','diao-149-mei','gui-149-jiao','gui-149-yuan','gui-149-jie',...c149]);
+  document.getElementById('inv-gift').innerHTML=makeRows(['gift-meat-10','gift-pine-10','gift-pine-5-mei','gift-pine-5-q',...cG]);
+  document.getElementById('inv-other').innerHTML=makeRows([...cO]);
+  const adjLogs=allLogs.filter(l=>l.type==='adj');
+  document.getElementById('adj-log-list').innerHTML=adjLogs.length?adjLogs.map(l=>'<div class="log-row"><span class="log-time">'+l.date+'<br>'+l.time+'</span><div class="log-body"><span class="log-tag tag-adj">調整</span>'+(l.staff?'['+l.staff+'] ':'')+l.desc+'</div></div>').join(''):'<div class="empty">尚無記錄</div>';
+}
+function adjustStock(k) {
+  const el=document.getElementById('adj-'+k); const nv=parseInt(el.value);
+  if(isNaN(nv)||nv<0){alert('請輸入有效數量');return;}
+  const ov=stock[k]||0; const diff=nv-ov; if(diff===0){alert('數量未改變');return;}
+  const time=new Date().toLocaleTimeString('zh-TW',{hour:'2-digit',minute:'2-digit'});
+  stock[k]=nv;
+  allLogs.unshift({time,date:TODAY,type:'adj',staff:currentStaff,desc:'手動調整：'+ITEMS[k].name+' '+ov+'→'+nv+'（誤差'+(diff>0?'+':'')+diff+'）'});
+  saveAll();renderInventory();alert('✓ 已調整：'+ITEMS[k].name+' → '+nv+' '+ITEMS[k].unit);
+}
+
+// IN/OUT
+function renderIOSelect() { document.getElementById('io-item').innerHTML=Object.entries(ITEMS).map(([k,v])=>'<option value="'+k+'">'+v.name+'（庫存'+(stock[k]||0)+v.unit+'）</option>').join(''); }
+function submitIO() {
+  const k=document.getElementById('io-item').value; const type=document.getElementById('io-type').value;
+  const q=parseInt(document.getElementById('io-qty').value)||1; const note=document.getElementById('io-note').value;
+  const time=new Date().toLocaleTimeString('zh-TW',{hour:'2-digit',minute:'2-digit'});
+  if(type==='in') stock[k]=(stock[k]||0)+q; else stock[k]=Math.max(0,(stock[k]||0)-q);
+  allLogs.unshift({time,date:TODAY,type,staff:currentStaff,desc:(type==='in'?'入庫':'出庫調整')+'：'+ITEMS[k].name+' × '+q+ITEMS[k].unit+(note?' ('+note+')':'')});
+  saveAll();renderIOLog();renderIOSelect();
+  document.getElementById('io-qty').value='0';
+  document.getElementById('io-note').value='';
+  alert(ITEMS[k].name+(type==='in'?' 入庫':' 出庫')+' '+q+' '+ITEMS[k].unit+'，目前庫存：'+stock[k]+' '+ITEMS[k].unit);
+}
+function renderIOLog() {
+  const tl=allLogs.filter(l=>l.date===TODAY&&(l.type==='in'||l.type==='out'));
+  document.getElementById('io-log').innerHTML=tl.length?tl.map(l=>'<div class="log-row"><span class="log-time">'+l.time+'</span><div class="log-body"><span class="log-tag '+(l.type==='in'?'tag-in':'tag-out')+'">'+(l.type==='in'?'入庫':'出庫')+'</span>'+(l.staff?'['+l.staff+'] ':'')+l.desc+'</div></div>').join(''):'<div class="empty">今日尚無記錄</div>';
+}
+
+// REPORT
+function getTodaySales() { return ld('jzr_sales_'+TODAY,{total:0,orders:0,items:{}}); }
+function getTodayTaste() { return ld('jzr_taste_'+TODAY,{total:0}); }
+function getEventStats() {
+  const start=settings.eventStart,end=settings.eventEnd;
+  if(!start||!end) return {total:0,orders:0,taste:0,items:{}};
+  const dates=[...new Set(allLogs.map(l=>l.date))].filter(d=>d>=start&&d<=end);
+  let total=0,orders=0,taste=0; const items={};
+  dates.forEach(d=>{
+    const s=ld('jzr_sales_'+d,{total:0,orders:0,items:{}}); const t=ld('jzr_taste_'+d,{total:0});
+    total+=s.total;orders+=s.orders;taste+=(t.total||0);
+    Object.entries(s.items||{}).forEach(([k,v])=>{items[k]=(items[k]||0)+v;});
+  });
+  return {total,orders,taste,items};
+}
+function makeRankHtml(items) {
+  const sorted=Object.entries(items).filter(([k,v])=>v>0&&ITEMS[k]).sort((a,b)=>b[1]-a[1]);
+  if(!sorted.length) return '<div class="empty">尚無資料</div>';
+  const m=['🥇','🥈','🥉'];
+  return sorted.map(([k,v],i)=>'<div class="rank-row"><div class="rank-num">'+(m[i]||i+1)+'</div><div class="rank-name">'+ITEMS[k].name+'</div><div class="rank-val">'+v+' '+ITEMS[k].unit+'</div></div>').join('');
+}
+function renderReport() {
+  const ts=getTodaySales(); const tt=getTodayTaste();
+  document.getElementById('rpt-total').textContent='$'+ts.total.toLocaleString();
+  document.getElementById('rpt-orders').textContent=ts.orders;
+  document.getElementById('rpt-taste').textContent=tt.total||0;
+  const ev=getEventStats();
+  document.getElementById('rpt-ev-total').textContent='$'+ev.total.toLocaleString();
+  document.getElementById('rpt-ev-orders').textContent=ev.orders;
+  document.getElementById('rpt-ev-taste').textContent=ev.taste;
+  document.getElementById('rpt-ev-period').textContent=(settings.eventStart||'?')+'～'+(settings.eventEnd||'?');
+  document.getElementById('rpt-rank-today').innerHTML=makeRankHtml(ts.items||{});
+  document.getElementById('rpt-rank-event').innerHTML=makeRankHtml(ev.items||{});
+  const tl=allLogs.filter(l=>l.date===TODAY);
+  const tagMap={sale:'tag-sale',in:'tag-in',out:'tag-out',taste:'tag-taste',adj:'tag-adj',refund:'tag-refund',clock:'tag-clock'};
+  const labelMap={sale:'銷售',in:'入庫',out:'出庫',taste:'試吃',adj:'調整',refund:'退貨',clock:'打卡'};
+  document.getElementById('rpt-log').innerHTML=tl.length?tl.map(l=>'<div class="log-row"><span class="log-time">'+l.time+'</span><div class="log-body"><span class="log-tag '+(tagMap[l.type]||'tag-sale')+'">'+(labelMap[l.type]||l.type)+'</span>'+(l.staff?'['+l.staff+'] ':'')+l.desc+'</div></div>').join(''):'<div class="empty">今日尚無記錄</div>';
+  if(!document.getElementById('range-start').value){
+    document.getElementById('range-start').value=settings.eventStart||'';
+    document.getElementById('range-end').value=settings.eventEnd||'';
+  }
+}
+function calcRange() {
+  const start=document.getElementById('range-start').value,end=document.getElementById('range-end').value;
+  if(!start||!end){alert('請選擇日期區間');return;}
+  const dates=[...new Set(allLogs.map(l=>l.date))].filter(d=>d>=start&&d<=end);
+  let rev=0,ord=0,taste=0; const itm={};
+  dates.forEach(d=>{
+    const s=ld('jzr_sales_'+d,{total:0,orders:0,items:{}}); const t=ld('jzr_taste_'+d,{total:0});
+    rev+=s.total;ord+=s.orders;taste+=(t.total||0);
+    Object.entries(s.items||{}).forEach(([k,v])=>{itm[k]=(itm[k]||0)+v;});
+  });
+  let html='<div class="stat-grid" style="margin-bottom:10px"><div class="stat"><div class="stat-val">$'+rev.toLocaleString()+'</div><div class="stat-label">總銷售額</div></div><div class="stat"><div class="stat-val">'+ord+'</div><div class="stat-label">總筆數</div></div><div class="stat"><div class="stat-val">'+taste+'</div><div class="stat-label">試吃包數</div></div></div>'+makeRankHtml(itm);
+  document.getElementById('range-summary').innerHTML=html;
+  document.getElementById('range-result').style.display='block';
+}
+
+// RESET
+function doReset() {
+  if(!confirm('最後確認：完整重置，品項保留，無法復原！')) return;
+  const keys=[]; for(let i=0;i<localStorage.length;i++) keys.push(localStorage.key(i));
+  keys.forEach(k=>{if(k.startsWith('jzr_sales_')||k.startsWith('jzr_taste_')) localStorage.removeItem(k);});
+  Object.keys(stock).forEach(k=>stock[k]=0);
+  customPromos=[];promoStates={};allLogs=[];clockLogs=[];
+  sv('jzr_stock',stock);sv('jzr_custom_promos',[]);sv('jzr_promo_states',{});sv('jzr_logs',[]);sv('jzr_clock',[]);
+  renderReport();renderPromos();alert('✓ 完整重置完成！');
+}
+
+// BACKUP / RESTORE
+function exportBackup() {
+  const dateStr=new Date().toISOString().slice(0,10);
+  const data={version:1,exportDate:new Date().toISOString(),stock,allLogs,settings,customItems,customPromos,promoStates,staffList,clockLogs,salesRecords:{}};
+  const lkeys=[]; for(let i=0;i<localStorage.length;i++) lkeys.push(localStorage.key(i));
+  lkeys.forEach(k=>{if(k.startsWith('jzr_sales_')||k.startsWith('jzr_taste_')){try{data.salesRecords[k]=JSON.parse(localStorage.getItem(k));}catch(e){}}});
+  const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');a.href=url;a.download='正經人備份_'+dateStr+'.json';
+  document.body.appendChild(a);a.click();document.body.removeChild(a);URL.revokeObjectURL(url);
+  alert('✓ 備份已下載！請存到安全的地方。');
+}
+function importBackup(event) {
+  const file=event.target.files[0]; if(!file) return;
+  if(!confirm('確定要還原備份嗎？\n目前的資料會被覆蓋！')) return;
+  const reader=new FileReader();
+  reader.onload=e=>{
+    try{
+      const data=JSON.parse(e.target.result);
+      if(!data.version){alert('備份檔案格式不正確');return;}
+      if(data.stock){Object.assign(stock,data.stock);sv('jzr_stock',stock);}
+      if(data.allLogs){allLogs=data.allLogs;sv('jzr_logs',allLogs);}
+      if(data.settings){Object.assign(settings,data.settings);sv('jzr_settings',settings);}
+      if(data.customItems){customItems=data.customItems;sv('jzr_custom_items',customItems);Object.entries(customItems).forEach(([k,v])=>{ITEMS[k]={...v,custom:true};});}
+      if(data.customPromos){customPromos=data.customPromos;sv('jzr_custom_promos',customPromos);}
+      if(data.promoStates){promoStates=data.promoStates;sv('jzr_promo_states',promoStates);}
+      if(data.staffList){staffList=data.staffList;sv('jzr_staff',staffList);}
+      if(data.clockLogs){clockLogs=data.clockLogs;sv('jzr_clock',clockLogs);}
+      if(data.salesRecords){Object.entries(data.salesRecords).forEach(([k,v])=>sv(k,v));}
+      Object.keys(ITEMS).forEach(k=>{if(stock[k]==null)stock[k]=0;});
+      renderPromos();renderGrid99();renderGrid149();initTasteSelect();
+      updateBanner99();updateBanner149();updateCartBar();renderReport();
+      alert('✓ 備份還原成功！備份日期：'+(data.exportDate?data.exportDate.slice(0,10):'未知'));
+    }catch(err){alert('還原失敗，備份檔案可能損壞：'+err.message);}
+  };
+  reader.readAsText(file);
+  event.target.value='';
+}
+
+// SETTINGS
+function renderSettingsPage() {
+  document.getElementById('staff-list-settings').innerHTML=staffList.map((s,i)=>'<div class="settings-item"><div class="settings-name">'+s+'</div><button class="btn-sm-danger" onclick="removeStaff('+i+')">刪除</button></div>').join('');
+  document.getElementById('pwd-boss').value='';
+  document.getElementById('pwd-manager').value='';
+  document.getElementById('low-tofu').value=settings.lowTofu||10;
+  document.getElementById('low-gift').value=settings.lowGift||3;
+  document.getElementById('event-start').value=settings.eventStart||'';
+  document.getElementById('event-end').value=settings.eventEnd||'';
+  renderItemsManage();
+  renderPromoManage();
+}
+function addStaff() {
+  const n=document.getElementById('new-staff-name').value.trim();
+  if(!n){alert('請輸入姓名');return;}
+  if(staffList.includes(n)){alert('已有此人員');return;}
+  staffList.push(n);sv('jzr_staff',staffList);
+  document.getElementById('new-staff-name').value='';
+  renderSettingsPage();
+}
+function removeStaff(i) {
+  if(!confirm('確定刪除「'+staffList[i]+'」？'))return;
+  staffList.splice(i,1);sv('jzr_staff',staffList);renderSettingsPage();
+}
+function savePwds() {
+  const current=document.getElementById('pwd-current').value;
+  const errEl=document.getElementById('pwd-verify-error');
+  if(!current){errEl.style.display='block';errEl.textContent='❌ 請先輸入目前密碼';return;}
+  if(current!==pwds.boss&&current!==pwds.manager){errEl.style.display='block';errEl.textContent='❌ 密碼錯誤，請重新輸入';document.getElementById('pwd-current').value='';return;}
+  errEl.style.display='none';
+  const b=document.getElementById('pwd-boss').value;
+  const m=document.getElementById('pwd-manager').value;
+  if(b) pwds.boss=b; if(m) pwds.manager=m;
+  sv('jzr_pwds',pwds);
+  document.getElementById('pwd-current').value='';
+  document.getElementById('pwd-boss').value='';
+  document.getElementById('pwd-manager').value='';
+  alert('✓ 密碼已儲存');
+}
+function saveLowSettings() {
+  settings.lowTofu=parseInt(document.getElementById('low-tofu').value)||10;
+  settings.lowGift=parseInt(document.getElementById('low-gift').value)||3;
+  sv('jzr_settings',settings);alert('✓ 已儲存');
+}
+function saveEventDates() {
+  settings.eventStart=document.getElementById('event-start').value;
+  settings.eventEnd=document.getElementById('event-end').value;
+  sv('jzr_settings',settings);alert('✓ 檔期已儲存');
+}
+function renderItemsManage() {
+  const active=Object.entries(ITEMS).filter(([k])=>!hiddenItems[k]);
+  const hidden=Object.entries(ITEMS).filter(([k])=>hiddenItems[k]);
+  const makeRow=([k,v])=>{
+    const hideBtn='<button class="toggle-btn '+(hiddenItems[k]?'toggle-off':'toggle-on')+'" onclick="toggleHideItem(\''+k+'\')"> '+(hiddenItems[k]?'顯示':'隱藏')+'</button>';
+    const delBtn='<button class="btn-sm-danger" onclick="removeItem(\''+k+'\')">刪除</button>';
+    return '<div class="settings-item"><div style="flex:1"><div class="settings-name">'+(hiddenItems[k]?'<span style=\"opacity:.5\">'+v.name+'</span>':v.name)+'</div><div class="settings-sub">$'+v.price+' / '+v.unit+' / '+v.group+'</div></div>'+hideBtn+delBtn+'</div>';
+  };
+  let html=active.map(makeRow).join('');
+  if(hidden.length) html+='<div style="margin-top:12px;font-size:12px;color:var(--text2);font-weight:600;">已隱藏品項</div>'+hidden.map(makeRow).join('');
+  document.getElementById('items-manage-list').innerHTML=html;
+}
+function toggleHideItem(k) {
+  hiddenItems[k]=!hiddenItems[k];
+  sv('jzr_hidden_items',hiddenItems);
+  renderItemsManage();
+  renderGrid99();renderGrid149();renderGiftGrid();updateCartBar();
+}
+function saveItemEdits() { renderItemsManage(); alert('✓ 已儲存'); }
+function removeItem(k) {
+  if(!confirm('確定刪除「'+ITEMS[k].name+'」？\n刪除後無法復原，若只是暫時不賣建議用「隱藏」。'))return;
+  delete ITEMS[k]; delete customItems[k]; delete stock[k]; delete hiddenItems[k];
+  sv('jzr_custom_items',customItems);sv('jzr_stock',stock);sv('jzr_hidden_items',hiddenItems);
+  renderItemsManage();renderGrid99();renderGrid149();renderGiftGrid();updateCartBar();alert('✓ 已刪除');
+}
+function addNewItem() {
+  const name=document.getElementById('new-name').value.trim();
+  if(!name){alert('請輸入品名');return;}
+  const group=document.getElementById('new-group').value;
+  const unit=document.getElementById('new-unit').value;
+  const price=parseInt(document.getElementById('new-price').value)||0;
+  const low=parseInt(document.getElementById('new-low').value)||5;
+  const key='custom-'+Date.now();
+  const item={name,price,unit,group,low,custom:true};
+  ITEMS[key]=item; customItems[key]=item; stock[key]=0;
+  sv('jzr_custom_items',customItems);sv('jzr_stock',stock);
+  document.getElementById('new-name').value='';
+  renderItemsManage();alert('✓ 已新增「'+name+'」');
+}
+function renderPromoManage() {
+  const labelMap={'99':'豆腐餅$99','149':'魚豆腐餅$149','both':'99+149','gift':'禮盒','all':'全部','emp99':'員購-豆腐餅','emp149':'員購-魚豆腐餅','empgift':'員購-禮盒','empall':'全部員購'};
+  const sections=[
+    {title:'一般活動',promos:[...BP99,...BP149,...customPromos.filter(p=>!p.group.startsWith('emp')&&!p.group.startsWith('app'))]},
+    {title:'員購活動',promos:[...BPemp99,...BPemp149,...customPromos.filter(p=>p.group&&p.group.startsWith('emp'))]},
+    {title:'百貨APP活動',promos:[...BPapp99,...BPapp149,...BPappgift,...customPromos.filter(p=>p.group&&p.group.startsWith('app'))]},
+  ];
+  document.getElementById('promo-manage-list').innerHTML=sections.map(sec=>{
+    if(!sec.promos.length)return '';
+    const rows=sec.promos.map(p=>{
+      const on=promoStates[p.id]!==false;
+      return `<div class="promo-manage-row"><div class="promo-info"><div class="settings-name">${p.label}</div><div class="settings-sub">${labelMap[p.group]||p.group}</div></div><button class="toggle-btn ${on?'toggle-on':'toggle-off'}" onclick="togglePromo('${p.id}')"> ${on?'啟用':'停用'}</button><button class="btn-sm-danger" onclick="deletePromo('${p.id}')">刪除</button></div>`;
+    }).join('');
+    return `<div style="font-size:12px;font-weight:700;color:var(--text2);margin:10px 0 6px;padding-left:4px">${sec.title}</div>${rows}`;
+  }).join('');
+}
+function togglePromo(id) {
+  promoStates[id]=promoStates[id]===false?true:false;
+  sv('jzr_promo_states',promoStates);renderPromoManage();renderPromos();
+}
+function deletePromo(id) {
+  if(!confirm('確定刪除此活動？\n刪除後無法復原，若只是暫時不用建議用「停用」。'))return;
+  // Remove from customPromos
+  customPromos=customPromos.filter(p=>p.id!==id);
+  delete promoStates[id];
+  // Remove from base arrays
+  const i99=BP99.findIndex(p=>p.id===id); if(i99>=0) BP99.splice(i99,1);
+  const i149=BP149.findIndex(p=>p.id===id); if(i149>=0) BP149.splice(i149,1);
+  const ie99=BPemp99.findIndex(p=>p.id===id); if(ie99>=0) BPemp99.splice(ie99,1);
+  const ie149=BPemp149.findIndex(p=>p.id===id); if(ie149>=0) BPemp149.splice(ie149,1);
+  const ia99=BPapp99.findIndex(p=>p.id===id); if(ia99>=0) BPapp99.splice(ia99,1);
+  const ia149=BPapp149.findIndex(p=>p.id===id); if(ia149>=0) BPapp149.splice(ia149,1);
+  const iag=BPappgift.findIndex(p=>p.id===id); if(iag>=0) BPappgift.splice(iag,1);
+  // Save deleted base promo ids so they don't come back on refresh
+  const deletedPromos=ld('jzr_deleted_promos',[]);
+  if(!deletedPromos.includes(id)) deletedPromos.push(id);
+  sv('jzr_deleted_promos',deletedPromos);
+  sv('jzr_custom_promos',customPromos);
+  sv('jzr_promo_states',promoStates);
+  renderPromoManage();renderPromos();
+}
+function toggleAppPromoFields() {
+  const t=document.getElementById('app-promo-type').value;
+  ['buySend','fixedPrice','normal','discount','discountAmt','minSpend','freeGift'].forEach(x=>{
+    document.getElementById('app-promo-fields-'+x).style.display=t===x?'block':'none';
+  });
+}
+function addAppPromo() {
+  const name=document.getElementById('app-promo-name').value.trim();
+  if(!name){alert('請輸入活動名稱');return;}
+  const group=document.getElementById('app-promo-group').value;
+  const type=document.getElementById('app-promo-type').value;
+  const id='ap-'+Date.now();
+  let promo={id,label:name,group,type,base:false};
+  if(type==='buySend'){promo.buy=parseInt(document.getElementById('app-promo-buy').value)||3;promo.send=parseInt(document.getElementById('app-promo-send').value)||1;promo.totalPrice=parseInt(document.getElementById('app-promo-total').value)||0;}
+  else if(type==='fixedPrice'){promo.fixedQty=parseInt(document.getElementById('app-promo-fixed-qty').value)||2;promo.fixedTotal=parseInt(document.getElementById('app-promo-fixed-total').value)||169;}
+  else if(type==='normal'){promo.empPrice=parseInt(document.getElementById('app-promo-price').value)||99;}
+  else if(type==='discount'){promo.discountPct=parseInt(document.getElementById('app-promo-discount-pct').value)||85;}
+  else if(type==='discountAmt'){promo.discountAmt=parseInt(document.getElementById('app-promo-discount-amt').value)||20;}
+  else if(type==='minSpend'){promo.minSpend=parseInt(document.getElementById('app-promo-min-spend').value)||500;promo.minDiscount=parseInt(document.getElementById('app-promo-min-discount').value)||50;}
+  else if(type==='freeGift'){promo.giftMin=parseInt(document.getElementById('app-promo-gift-min').value)||500;promo.giftQty=parseInt(document.getElementById('app-promo-gift-qty').value)||1;}
+  customPromos.push(promo);sv('jzr_custom_promos',customPromos);
+  document.getElementById('app-promo-name').value='';
+  renderPromoManage();alert('✓ APP活動已新增');
+}
+function toggleEmpPromoFields() {
+  const t=document.getElementById('emp-promo-type').value;
+  ['normal','buySend','fixedPrice','discount','discountAmt','minSpend','freeGift'].forEach(x=>{
+    document.getElementById('emp-promo-fields-'+x).style.display=t===x?'block':'none';
+  });
+}
+function addEmpPromo() {
+  const name=document.getElementById('emp-promo-name').value.trim();
+  if(!name){alert('請輸入活動名稱');return;}
+  const group=document.getElementById('emp-promo-group').value;
+  const type=document.getElementById('emp-promo-type').value;
+  const id='ep-'+Date.now();
+  let promo={id,label:name,group,type,base:false};
+  if(type==='normal'){
+    promo.empPrice=parseInt(document.getElementById('emp-promo-price').value)||79;
+  } else if(type==='buySend'){
+    promo.buy=parseInt(document.getElementById('emp-promo-buy').value)||10;
+    promo.send=parseInt(document.getElementById('emp-promo-send').value)||3;
+    promo.totalPrice=parseInt(document.getElementById('emp-promo-total').value)||0;
+  } else if(type==='fixedPrice'){
+    promo.fixedQty=parseInt(document.getElementById('emp-promo-fixed-qty').value)||2;
+    promo.fixedTotal=parseInt(document.getElementById('emp-promo-fixed-total').value)||150;
+  } else if(type==='discount'){
+    promo.discountPct=parseInt(document.getElementById('emp-promo-discount-pct').value)||85;
+  } else if(type==='discountAmt'){
+    promo.discountAmt=parseInt(document.getElementById('emp-promo-discount-amt').value)||20;
+  } else if(type==='minSpend'){
+    promo.minSpend=parseInt(document.getElementById('emp-promo-min-spend').value)||500;
+    promo.minDiscount=parseInt(document.getElementById('emp-promo-min-discount').value)||50;
+  } else if(type==='freeGift'){
+    promo.giftMin=parseInt(document.getElementById('emp-promo-gift-min').value)||500;
+    promo.giftQty=parseInt(document.getElementById('emp-promo-gift-qty').value)||1;
+  }
+  customPromos.push(promo);sv('jzr_custom_promos',customPromos);
+  document.getElementById('emp-promo-name').value='';
+  renderPromoManage();if(typeof renderEmpPromos==='function')renderEmpPromos();alert('✓ 員購活動已新增');
+}
+function togglePromoFields() {
+  const t=document.getElementById('promo-type').value;
+  ['buySend','fixedPrice','discount','discountAmt','minSpend','freeGift'].forEach(x=>{
+    document.getElementById('promo-fields-'+x).style.display=t===x?'block':'none';
+  });
+}
+function addCustomPromo() {
+  const name=document.getElementById('promo-name').value.trim();
+  if(!name){alert('請輸入活動名稱');return;}
+  const group=document.getElementById('promo-group').value;
+  const type=document.getElementById('promo-type').value;
+  const id='cp-'+Date.now();
+  let promo={id,label:name,group,type,base:false};
+  if(type==='buySend'){
+    promo.buy=parseInt(document.getElementById('promo-buy').value)||10;
+    promo.send=parseInt(document.getElementById('promo-send').value)||3;
+    promo.totalPrice=parseInt(document.getElementById('promo-total-price').value)||0;
+  } else if(type==='fixedPrice'){
+    promo.fixedQty=parseInt(document.getElementById('promo-fixed-qty').value)||2;
+    promo.fixedTotal=parseInt(document.getElementById('promo-fixed-total').value)||169;
+  } else if(type==='discount'){
+    promo.discountPct=parseInt(document.getElementById('promo-discount-pct').value)||85;
+  } else if(type==='discountAmt'){
+    promo.discountAmt=parseInt(document.getElementById('promo-discount-amt').value)||20;
+  } else if(type==='minSpend'){
+    promo.minSpend=parseInt(document.getElementById('promo-min-spend').value)||500;
+    promo.minDiscount=parseInt(document.getElementById('promo-min-discount').value)||50;
+  } else if(type==='freeGift'){
+    promo.giftMin=parseInt(document.getElementById('promo-gift-min').value)||500;
+    promo.giftQty=parseInt(document.getElementById('promo-gift-qty').value)||1;
+  }
+  customPromos.push(promo);sv('jzr_custom_promos',customPromos);
+  document.getElementById('promo-name').value='';
+  renderPromoManage();renderPromos();alert('✓ 活動已新增');
+}
+
+// EMP ZONE
+let empQty99={}, empQty149={};
+let empPromo99='emp-n99', empPromo149='emp-n149';
+let empGiftPromoId=null;
+let appQty99={}, appQty149={}, appGiftQty={};
+let appPromo99=null, appPromo149=null, appGiftPromoId=null;
+
+function getAppP99()   { return [...BPapp99,...customPromos.filter(p=>p.group==='app99'||p.group==='appall')].filter(p=>promoStates[p.id]!==false); }
+function getAppP149()  { return [...BPapp149,...customPromos.filter(p=>p.group==='app149'||p.group==='appall')].filter(p=>promoStates[p.id]!==false); }
+function getAppPGift() { return [...BPappgift,...customPromos.filter(p=>p.group==='appgift'||p.group==='appall')].filter(p=>promoStates[p.id]!==false); }
+function getEmpP99()  {
+  const base=BPemp99.map(p=>({...p,enabled:promoStates[p.id]!==false}));
+  const custom=customPromos.filter(p=>p.group==='emp99').map(p=>({...p,enabled:promoStates[p.id]!==false}));
+  return [...base,...custom];
+}
+function getEmpP149() {
+  const base=BPemp149.map(p=>({...p,enabled:promoStates[p.id]!==false}));
+  const custom=customPromos.filter(p=>p.group==='emp149').map(p=>({...p,enabled:promoStates[p.id]!==false}));
+  return [...base,...custom];
+}
+function empPromoTotal(p, up, t) {
+  if(!p||t===0) return t*up;
+  if(p.type==='normal') return t*(p.empPrice||up);
+  if(p.type==='buySend') { const s=Math.floor(t/(p.buy+p.send)),r=t%(p.buy+p.send),rp=Math.min(r,p.buy); return s*(p.totalPrice||0)+rp*(p.empPrice||up); }
+  if(p.type==='fixedPrice') { const s=Math.floor(t/p.fixedQty),r=t%p.fixedQty; return s*p.fixedTotal+r*(p.empPrice||up); }
+  if(p.type==='discount') return Math.round(t*up*(p.discountPct||100)/100);
+  return t*up;
+}
+function renderEmpZone() {
+  renderEmpPromos();
+  renderEmpGrid('99');
+  renderEmpGrid('149');
+  renderEmpGiftGrid();
+  updateEmpBanner('99');
+  updateEmpBanner('149');
+  updateCartBar();
+}
+function getEmpGiftPrice(k) {
+  if(!empGiftPromoId) return ITEMS[k].price;
+  const p=customPromos.find(x=>x.id===empGiftPromoId);
+  if(!p) return ITEMS[k].price;
+  if(p.type==='discount') return Math.round(ITEMS[k].price*(p.discountPct||100)/100);
+  if(p.type==='discountAmt') return Math.max(0,ITEMS[k].price-(p.discountAmt||0));
+  if(p.type==='fixedPrice') return p.fixedTotal||ITEMS[k].price;
+  return ITEMS[k].price;
+}
+function setEmpGiftPromo(id) {
+  empGiftPromoId=empGiftPromoId===id?null:id;
+  renderEmpGiftGrid();
+  updateCartBar();
+}
+function renderEmpGiftGrid() {
+  const keys=kGift();
+  const empGiftPromos=customPromos.filter(p=>(p.group==='empgift'||p.group==='empall')&&promoStates[p.id]!==false);
+  // render promo pills
+  document.getElementById('promo-scroll-empgift').innerHTML=empGiftPromos.length
+    ? empGiftPromos.map(p=>{
+        const active=empGiftPromoId===p.id;
+        let priceLabel='';
+        if(p.type==='discount') priceLabel=p.discountPct+'折';
+        else if(p.type==='discountAmt') priceLabel='折$'+p.discountAmt;
+        else if(p.type==='fixedPrice') priceLabel='$'+p.fixedTotal;
+        return `<button class="promo-pill ${active?'active':''}" onclick="setEmpGiftPromo('${p.id}')">${p.label}<br><span class="pill-price">${priceLabel}</span></button>`;
+      }).join('')
+    : '<div style="font-size:12px;color:var(--text3);padding:4px">目前無員購禮盒活動</div>';
+  // render gift cards with emp price
+  document.getElementById('emp-gift-grid').innerHTML=keys.map(k=>{
+    const s=stock[k]||0;
+    const q=giftQty[k]||0;
+    const empPrice=getEmpGiftPrice(k);
+    const origPrice=ITEMS[k].price;
+    const priceDisplay=empGiftPromoId&&empPrice!==origPrice
+      ? `<span style="color:var(--danger);font-weight:700">$${empPrice}</span> <span style="text-decoration:line-through;color:var(--text3);font-size:11px">$${origPrice}</span>`
+      : `$${origPrice}`;
+    return `<div class="gift-card ${s===0?'zero':''}"><div class="gift-name">${ITEMS[k].name}</div><div class="gift-price">${priceDisplay}</div><div class="gift-stock">${s}${ITEMS[k].unit}</div><div class="qty-row"><button class="qty-btn" onclick="chgGift('${k}',-1)">−</button><span class="qty-num" id="gq-${k}">${q}</span><button class="qty-btn" onclick="chgGift('${k}',1)">+</button></div></div>`;
+  }).join('');
+}
+function renderEmpPromos() {
+  const make=(promos,cid,curId)=>{
+    document.getElementById(cid).innerHTML=promos.map(p=>{
+      const ps=p.type==='normal'?'$'+(p.empPrice||'?')+'/包':p.type==='buySend'?'$'+(p.totalPrice||'?'):'$'+(p.fixedTotal||'?');
+      return `<button class="promo-pill ${curId===p.id?'active':''} ${p.enabled?'':'disabled'}" onclick="setEmpPromo('${p.id}','${p.group}')">${p.label}<br><span class="pill-price">${ps}</span></button>`;
+    }).join('');
+  };
+  make(getEmpP99(),'promo-scroll-emp99',empPromo99);
+  make(getEmpP149(),'promo-scroll-emp149',empPromo149);
+}
+function setEmpPromo(id, group) {
+  if(group==='emp99'){ empPromo99=id; k99().forEach(k=>empQty99[k]=0); }
+  else { empPromo149=id; k149().forEach(k=>empQty149[k]=0); }
+  renderEmpPromos();
+  renderEmpGrid(group==='emp99'?'99':'149');
+  updateEmpBanner(group==='emp99'?'99':'149');
+  updateCartBar();
+}
+function updateEmpBanner(series) {
+  const p=series==='99'?getEmpP99().find(x=>x.id===empPromo99):getEmpP149().find(x=>x.id===empPromo149);
+  const bannerId='locked-banner-emp'+series, infoId='locked-info-emp'+series, totalId='locked-total-emp'+series;
+  const up=series==='99'?99:149;
+  if(!p||p.type==='normal'){document.getElementById(bannerId).style.display='none';return;}
+  const lq=p.type==='buySend'?p.buy+p.send:p.type==='fixedPrice'?p.fixedQty:null;
+  const t=series==='99'?k99().reduce((s,k)=>s+(empQty99[k]||0),0):k149().reduce((s,k)=>s+(empQty149[k]||0),0);
+  document.getElementById(bannerId).style.display='block';
+  document.getElementById(infoId).textContent=p.label+(lq?' 共'+lq+'包':'')+' $'+(p.totalPrice||p.fixedTotal||'?')+' — 已選'+t+(lq?'/'+lq:'')+'包';
+  document.getElementById(totalId).textContent='$'+Math.round(empPromoTotal(p,up,t));
+}
+function renderEmpGrid(series) {
+  const keys=series==='99'?k99():k149();
+  const p=series==='99'?getEmpP99().find(x=>x.id===empPromo99):getEmpP149().find(x=>x.id===empPromo149);
+  const qty=series==='99'?empQty99:empQty149;
+  const lq=p?lockedQty(p):null;
+  const t=keys.reduce((s,k)=>s+(qty[k]||0),0);
+  const atMax=lq!==null&&t>=lq;
+  const gridId=series==='99'?'flavor-grid-emp99':'flavor-grid-emp149';
+  const s=series==='99'?99:149;
+  document.getElementById(gridId).innerHTML=keys.map(k=>{
+    const st=stock[k]||0;
+    return `<div class="flavor-card ${st===0?'zero':atMax&&!(qty[k]>0)?'lzero':''}"><div class="f-name">${ITEMS[k].name}</div><div class="f-stock">${st}包</div><div class="qty-row"><button class="qty-btn" onclick="chgEmp('${k}','${series}',-1)">−</button><span class="qty-num" id="eq-${k}">${qty[k]||0}</span><button class="qty-btn" onclick="chgEmp('${k}','${series}',1)">+</button></div></div>`;
+  }).join('');
+}
+function chgEmp(k, series, d) {
+  const qty=series==='99'?empQty99:empQty149;
+  const keys=series==='99'?k99():k149();
+  const p=series==='99'?getEmpP99().find(x=>x.id===empPromo99):getEmpP149().find(x=>x.id===empPromo149);
+  const lq=p?lockedQty(p):null;
+  const t=keys.reduce((s,k2)=>s+(qty[k2]||0),0);
+  if(d>0&&lq!==null&&t>=lq)return;
+  if(d>0&&(stock[k]||0)<=(qty[k]||0))return;
+  qty[k]=Math.max(0,(qty[k]||0)+d);
+  const el=document.getElementById('eq-'+k);
+  if(el)el.textContent=qty[k];
+  updateEmpBanner(series);
+  updateCartBar();
+  renderEmpGrid(series);
+}
+
+// APP ZONE
+function renderAppZone() {
+  renderAppPromos();
+  renderAppGrid('99');
+  renderAppGrid('149');
+  renderAppGiftGrid();
+  updateAppBanner('99');
+  updateAppBanner('149');
+  updateCartBar();
+}
+function renderAppPromos() {
+  const makeRow=(promos,cid,curId)=>{
+    document.getElementById(cid).innerHTML=promos.length
+      ? '<div style="font-size:12px;color:var(--primary);font-weight:600;margin-bottom:4px">請點選優惠方案</div>'+promos.map(p=>{
+          const ps=p.type==='normal'?'$'+(p.empPrice||'?')+'/包':p.type==='buySend'?'買'+p.buy+'送'+p.send+(p.totalPrice?'/$'+p.totalPrice:''):p.type==='fixedPrice'?'$'+(p.fixedTotal||'?'):p.type==='discount'?p.discountPct+'折':'';
+          return `<button class="promo-pill ${curId===p.id?'active':''}" onclick="setAppPromo('${p.id}','${p.group}')">${p.label}<br><span class="pill-price">${ps}</span></button>`;
+        }).join('')
+      : '';
+  };
+  makeRow(getAppP99(),'promo-scroll-app99',appPromo99);
+  makeRow(getAppP149(),'promo-scroll-app149',appPromo149);
+}
+function setAppPromo(id,group) {
+  if(group==='app99'||group==='appall'){appPromo99=appPromo99===id?null:id;k99().forEach(k=>appQty99[k]=0);}
+  if(group==='app149'||group==='appall'){appPromo149=appPromo149===id?null:id;k149().forEach(k=>appQty149[k]=0);}
+  renderAppPromos();renderAppGrid('99');renderAppGrid('149');updateAppBanner('99');updateAppBanner('149');updateCartBar();
+}
+function updateAppBanner(series) {
+  const p=series==='99'?getAppP99().find(x=>x.id===appPromo99):getAppP149().find(x=>x.id===appPromo149);
+  const bannerId='locked-banner-app'+series,infoId='locked-info-app'+series,totalId='locked-total-app'+series;
+  const up=series==='99'?99:149;
+  if(!p){document.getElementById(bannerId).style.display='none';return;}
+  const qty=series==='99'?appQty99:appQty149;
+  const keys=series==='99'?k99():k149();
+  const t=keys.reduce((s,k)=>s+(qty[k]||0),0);
+  const lq=p.type==='buySend'?p.buy+p.send:p.type==='fixedPrice'?p.fixedQty:null;
+  document.getElementById(bannerId).style.display='block';
+  document.getElementById(infoId).textContent=p.label+(lq?' 共'+lq+'包':'')+' — 已選'+t+(lq?'/'+lq:'')+'包';
+  document.getElementById(totalId).textContent='$'+Math.round(empPromoTotal(p,up,t));
+}
+function renderAppGrid(series) {
+  const keys=series==='99'?k99():k149();
+  const p=series==='99'?getAppP99().find(x=>x.id===appPromo99):getAppP149().find(x=>x.id===appPromo149);
+  const qty=series==='99'?appQty99:appQty149;
+  const lq=p?lockedQty(p):null;
+  const t=keys.reduce((s,k)=>s+(qty[k]||0),0);
+  const atMax=lq!==null&&t>=lq;
+  const gridId='flavor-grid-app'+series;
+  const up=series==='99'?99:149;
+  document.getElementById(gridId).innerHTML=keys.map(k=>{
+    const st=stock[k]||0;
+    return `<div class="flavor-card ${st===0?'zero':atMax&&!(qty[k]>0)?'lzero':''}"><div class="f-name">${ITEMS[k].name}</div><div class="f-stock">${st}包</div><div class="qty-row"><button class="qty-btn" onclick="chgApp('${k}','${series}',-1)">−</button><span class="qty-num" id="aq-${k}">${qty[k]||0}</span><button class="qty-btn" onclick="chgApp('${k}','${series}',1)">+</button></div></div>`;
+  }).join('');
+}
+function chgApp(k,series,d) {
+  const qty=series==='99'?appQty99:appQty149;
+  const keys=series==='99'?k99():k149();
+  const p=series==='99'?getAppP99().find(x=>x.id===appPromo99):getAppP149().find(x=>x.id===appPromo149);
+  const lq=p?lockedQty(p):null;
+  const t=keys.reduce((s,k2)=>s+(qty[k2]||0),0);
+  if(d>0&&lq!==null&&t>=lq)return;
+  if(d>0&&(stock[k]||0)<=(qty[k]||0))return;
+  qty[k]=Math.max(0,(qty[k]||0)+d);
+  const el=document.getElementById('aq-'+k);if(el)el.textContent=qty[k];
+  updateAppBanner(series);updateCartBar();renderAppGrid(series);
+}
+function renderAppGiftGrid() {
+  const keys=kGift();
+  const appGiftPromos=getAppPGift();
+  document.getElementById('promo-scroll-appgift').innerHTML=appGiftPromos.length
+    ? appGiftPromos.map(p=>{
+        const active=appGiftPromoId===p.id;
+        let pl='';
+        if(p.type==='discount')pl=p.discountPct+'折';
+        else if(p.type==='discountAmt')pl='折$'+p.discountAmt;
+        else if(p.type==='fixedPrice')pl='$'+p.fixedTotal;
+        return `<button class="promo-pill ${active?'active':''}" onclick="setAppGiftPromo('${p.id}')">${p.label}<br><span class="pill-price">${pl}</span></button>`;
+      }).join('')
+    : '<div style="font-size:12px;color:var(--text3);padding:4px">目前無APP禮盒活動</div>';
+  document.getElementById('app-gift-grid').innerHTML=keys.map(k=>{
+    const s=stock[k]||0;
+    const q=appGiftQty[k]||0;
+    const p=appGiftPromos.find(x=>x.id===appGiftPromoId);
+    let showPrice=ITEMS[k].price;
+    if(p){if(p.type==='discount')showPrice=Math.round(ITEMS[k].price*(p.discountPct||100)/100);else if(p.type==='discountAmt')showPrice=Math.max(0,ITEMS[k].price-(p.discountAmt||0));}
+    const priceDisplay=p&&showPrice!==ITEMS[k].price?`<span style="color:var(--danger);font-weight:700">$${showPrice}</span> <span style="text-decoration:line-through;color:var(--text3);font-size:11px">$${ITEMS[k].price}</span>`:`$${ITEMS[k].price}`;
+    return `<div class="gift-card ${s===0?'zero':''}"><div class="gift-name">${ITEMS[k].name}</div><div class="gift-price">${priceDisplay}</div><div class="gift-stock">${s}${ITEMS[k].unit}</div><div class="qty-row"><button class="qty-btn" onclick="chgAppGift('${k}',-1)">−</button><span class="qty-num" id="agq-${k}">${q}</span><button class="qty-btn" onclick="chgAppGift('${k}',1)">+</button></div></div>`;
+  }).join('');
+}
+function setAppGiftPromo(id){appGiftPromoId=appGiftPromoId===id?null:id;renderAppGiftGrid();updateCartBar();}
+function chgAppGift(k,d){
+  if(d>0&&(stock[k]||0)<=(appGiftQty[k]||0))return;
+  appGiftQty[k]=Math.max(0,(appGiftQty[k]||0)+d);
+  const el=document.getElementById('agq-'+k);if(el)el.textContent=appGiftQty[k];
+  updateCartBar();
+}
+
+// SAVE ALL
+function saveAll() { sv('jzr_stock',stock);sv('jzr_logs',allLogs); }
+
+// REFRESH
+function refreshAll() {
+  renderPromos();renderGrid99();renderGrid149();
+  updateBanner99();updateBanner149();updateCartBar();
+  initTasteSelect();updateHeaderUser();
+}
+
+// TASTE SELECT INIT
+function initTasteSelect() {
+  const keys=Object.keys(ITEMS).filter(k=>ITEMS[k].group==='99'||ITEMS[k].group==='149');
+  document.getElementById('taste-flavor').innerHTML=keys.map(k=>'<option value="'+k+'">'+ITEMS[k].name+'</option>').join('');
+  const t=ld('jzr_taste_'+TODAY,{total:0});
+  document.getElementById('taste-total').textContent=t.total||0;
+}
+
+// LOW STOCK MODAL
+function checkLowStock() {
+  const lows=Object.keys(ITEMS).filter(k=>{
+    const s=stock[k]||0; const item=ITEMS[k];
+    const low=item.group==='gift'||item.group==='other'?settings.lowGift:(item.low||settings.lowTofu);
+    return s<=low;
+  });
+  if(!lows.length) return;
+  document.getElementById('lowstock-content').innerHTML=lows.map(k=>{
+    const s=stock[k]||0;
+    return '<div class="alert '+(s===0?'alert-danger':'alert-warn')+'">⚠ '+ITEMS[k].name+' — '+(s===0?'已售完':'低庫存 '+s+ITEMS[k].unit)+'</div>';
+  }).join('');
+  document.getElementById('lowstock-modal').style.display='flex';
+}
+
+// INIT
+updateHeaderUser();
+renderPromos();
+renderGrid99();
+renderGrid149();
+initTasteSelect();
+updateCartBar();
+checkLowStock();
+
+</script>
+<script>
+if('serviceWorker' in navigator){
+  window.addEventListener('load',()=>{
+    navigator.serviceWorker.register('sw.js').then(()=>console.log('SW registered')).catch(e=>console.log('SW error',e));
+  });
+}
+</script>
+</body>
+</html>
