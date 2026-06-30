@@ -143,6 +143,11 @@ tr:hover td{background:#fafaf8}
     <div>
       <div class="card">
         <div style="display:flex;gap:8px;margin-bottom:11px;flex-wrap:wrap;align-items:center">
+          <select id="identity-select" style="width:auto;font-weight:700;border-color:var(--green);color:var(--green)" onchange="onIdentityChange()">
+            <option value="price">👤 一般戶</option>
+            <option value="priceMid">🧑‍🦳 中低收入戶</option>
+            <option value="priceLow">🧑‍🦽 低收入戶</option>
+          </select>
           <input type="text" id="search-input" placeholder="搜尋商品..." style="flex:1;min-width:130px" oninput="renderProducts()">
           <select id="promo-select" style="width:auto" onchange="renderCart()">
             <option value="">無活動</option>
@@ -155,7 +160,7 @@ tr:hover td{background:#fafaf8}
 
     <div>
       <div class="card" style="position:sticky;top:62px">
-        <div class="card-title">🛒 購物車
+        <div class="card-title">🛒 購物車 <span class="badge badge-green" id="cart-identity-badge">一般戶</span>
           <button class="btn btn-outline btn-sm" style="margin-left:auto" onclick="clearCart()">一鍵清空</button>
         </div>
         <div id="cart-items" style="max-height:300px;overflow-y:auto"></div>
@@ -274,9 +279,20 @@ tr:hover td{background:#fafaf8}
     <div class="card-title">🔒 操作紀錄 <span style="font-size:12px;color:var(--text2)">(需密碼)</span>
       <button class="btn btn-outline btn-sm" style="margin-left:auto" onclick="requirePassword('oplog',renderOpLog)">查看</button>
     </div>
-    <div id="op-log-area" style="display:none;max-height:280px;overflow-y:auto">
-      <table><thead><tr><th>時間</th><th>人員</th><th>操作</th></tr></thead>
-      <tbody id="op-log-tbody"></tbody></table>
+    <div id="op-log-area" style="display:none">
+      <div style="display:flex;gap:7px;flex-wrap:wrap;margin-bottom:10px;align-items:center">
+        <input type="date" id="oplog-start" style="width:140px">
+        <input type="date" id="oplog-end" style="width:140px">
+        <select id="oplog-person" style="width:130px">
+          <option value="">全部人員</option>
+        </select>
+        <button class="btn btn-green btn-sm" onclick="renderOpLog()">查詢</button>
+        <button class="btn btn-outline btn-sm" onclick="resetOpLogFilter()">清除篩選</button>
+      </div>
+      <div style="max-height:280px;overflow-y:auto">
+        <table><thead><tr><th>時間</th><th>人員</th><th>操作</th></tr></thead>
+        <tbody id="op-log-tbody"></tbody></table>
+      </div>
     </div>
   </div>
 </div>
@@ -321,7 +337,7 @@ tr:hover td{background:#fafaf8}
       <div class="card-title">📦 品項管理
         <button class="btn btn-green btn-sm" style="margin-left:auto" onclick="openProductModal()">＋ 新增品項</button>
       </div>
-      <table><thead><tr><th>品項名稱</th><th>分類</th><th>售價</th><th>庫存</th><th>狀態</th><th>操作</th></tr></thead>
+      <table><thead><tr><th>品項名稱</th><th>分類</th><th>一般戶</th><th>中低收</th><th>低收入</th><th>庫存</th><th>狀態</th><th>操作</th></tr></thead>
       <tbody id="settings-product-tbody"></tbody></table>
     </div>
     <div class="card" style="grid-column:1/-1">
@@ -425,7 +441,9 @@ tr:hover td{background:#fafaf8}
     <input type="hidden" id="edit-product-id">
     <label>品項名稱</label><input type="text" id="edit-product-name" style="margin-bottom:7px">
     <label>分類</label><select id="edit-product-cat" style="margin-bottom:7px"></select>
-    <label>售價（元）</label><input type="number" id="edit-product-price" style="margin-bottom:7px">
+    <label>👤 一般戶售價（元）</label><input type="number" id="edit-product-price" style="margin-bottom:7px" oninput="syncPriceDefaults()">
+    <label>🧑‍🦳 中低收入戶售價（元）</label><input type="number" id="edit-product-price-mid" style="margin-bottom:7px">
+    <label>🧑‍🦽 低收入戶售價（元）</label><input type="number" id="edit-product-price-low" style="margin-bottom:7px">
     <label>初始庫存</label><input type="number" id="edit-product-stock" style="margin-bottom:11px">
     <div class="modal-actions">
       <button class="btn btn-outline" onclick="closeModal('modal-product')">取消</button>
@@ -497,12 +515,12 @@ function defaultData() {
     persons: ['小明', '小華', '小美'],
     categories: ['輔助行走', '沐浴輔具', '居家照護', '其他'],
     products: [
-      {id:1,name:'四腳拐杖',cat:'輔助行走',price:850,stock:15,hidden:false},
-      {id:2,name:'助行器',cat:'輔助行走',price:1200,stock:8,hidden:false},
-      {id:3,name:'洗澡椅',cat:'沐浴輔具',price:980,stock:12,hidden:false},
-      {id:4,name:'防滑墊',cat:'沐浴輔具',price:280,stock:25,hidden:false},
-      {id:5,name:'看護床',cat:'居家照護',price:8500,stock:3,hidden:false},
-      {id:6,name:'輪椅',cat:'輔助行走',price:4500,stock:5,hidden:false},
+      {id:1,name:'四腳拐杖',cat:'輔助行走',price:850,priceMid:850,priceLow:850,stock:15,hidden:false},
+      {id:2,name:'助行器',cat:'輔助行走',price:1200,priceMid:1200,priceLow:1200,stock:8,hidden:false},
+      {id:3,name:'洗澡椅',cat:'沐浴輔具',price:980,priceMid:980,priceLow:980,stock:12,hidden:false},
+      {id:4,name:'防滑墊',cat:'沐浴輔具',price:280,priceMid:280,priceLow:280,stock:25,hidden:false},
+      {id:5,name:'看護床',cat:'居家照護',price:8500,priceMid:8500,priceLow:8500,stock:3,hidden:false},
+      {id:6,name:'輪椅',cat:'輔助行走',price:4500,priceMid:4500,priceLow:4500,stock:5,hidden:false},
     ],
     promos: [
       {id:1,name:'全館九折',type:'discount',value:90,start:'',end:'',active:true},
@@ -540,6 +558,16 @@ function showPage(p) {
 // ══════════════════════════════════════════
 let cart = [];
 let activeCategory = '全部';
+let identityField = 'price'; // price=一般戶, priceMid=中低收入戶, priceLow=低收入戶
+
+function onIdentityChange() {
+  identityField = document.getElementById('identity-select').value;
+  if(cart.length){
+    cart=[];
+    showToast('已切換身分，購物車已清空，請重新加入商品');
+  }
+  renderProducts();
+}
 
 
 function getActivePromos() {
@@ -595,9 +623,10 @@ function renderProducts() {
 
   document.getElementById('product-grid').innerHTML = products.map(p=>{
     const oos = p.stock<=0;
+    const displayPrice = p[identityField] ?? p.price;
     return `<div class="product-card ${oos?'out-of-stock':''}" onclick="addToCart(${p.id})">
       <div class="product-name">${p.name}</div>
-      <div class="product-price">$${p.price.toLocaleString()}</div>
+      <div class="product-price">$${displayPrice.toLocaleString()}</div>
       <div class="product-stock">庫存：${p.stock}</div>
     </div>`;
   }).join('') || '<div style="color:var(--text2);font-size:13px;padding:20px;text-align:center;">無商品</div>';
@@ -608,9 +637,10 @@ function renderProducts() {
 function addToCart(id) {
   const p = DB.products.find(x=>x.id===id);
   if(!p||p.stock<=0) return;
+  const usePrice = p[identityField] ?? p.price;
   const exist = cart.find(x=>x.id===id);
   if(exist){if(exist.qty>=p.stock){showToast('庫存不足！');return;}exist.qty++;}
-  else cart.push({id,name:p.name,price:p.price,qty:1});
+  else cart.push({id,name:p.name,price:usePrice,qty:1});
   renderCart();
   showToast('已加入：'+p.name);
 }
@@ -624,12 +654,15 @@ function changeQty(id,delta) {
 }
 
 function renderCart() {
+  const idLabel={price:'一般戶',priceMid:'中低收入戶',priceLow:'低收入戶'};
+  const badge=document.getElementById('cart-identity-badge');
+  if(badge) badge.textContent=idLabel[identityField]||'一般戶';
   const area=document.getElementById('cart-items');
   if(!cart.length){
     area.innerHTML='<div style="color:var(--text2);font-size:13px;padding:18px;text-align:center;">購物車空空的</div>';
     document.getElementById('cart-total').textContent='總計：$0';
     document.getElementById('cart-promo-info').textContent='';
-    document.getElementById('ltc-breakdown').textContent='';
+    document.getElementById('cart-pay-preview').innerHTML='';
     return;
   }
   area.innerHTML = cart.map(item=>`
@@ -651,7 +684,7 @@ function renderCart() {
   document.getElementById('cart-total').textContent=`總計：$${finalTotal.toLocaleString()}`;
 }
 
-function clearCart(){if(!cart.length)return;if(confirm('確定要清空購物車？')){cart=[];renderCart();showToast('購物車已清空');}}
+function clearCart(){if(!cart.length)return;if(confirm('確定要清空購物車？')){cart=[];activeCaseId=null;renderCart();showToast('購物車已清空');}}
 
 
 
@@ -660,13 +693,24 @@ function openCheckout() {
   if(!cart.length){showToast('購物車是空的');return;}
   const subtotal=cart.reduce((s,i)=>s+i.price*i.qty,0);
   const {finalTotal,discount,note}=applyPromo(subtotal,cart);
+  const idLabel={price:'一般戶',priceMid:'中低收入戶',priceLow:'低收入戶'};
+  const linkedCase = activeCaseId ? DB.cases.find(c=>c.id===activeCaseId) : null;
 
-  document.getElementById('checkout-detail').innerHTML=cart.map(i=>
+  let headerHtml = `<div style="margin-bottom:8px;display:flex;gap:6px;flex-wrap:wrap;align-items:center">
+    <span class="badge badge-green">身分：${idLabel[identityField]||'一般戶'}</span>`;
+  if(linkedCase){
+    headerHtml += `<span class="badge badge-blue">♿ 個案：${linkedCase.name}（第${linkedCase.level}級）</span>
+      <button class="btn btn-outline btn-sm" onclick="activeCaseId=null;openCheckout()" style="padding:2px 8px">移除個案</button>`;
+  }
+  headerHtml += `</div>`;
+
+  document.getElementById('checkout-detail').innerHTML = headerHtml +
+    cart.map(i=>
     `<div style="display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid var(--border);font-size:13px">
       <span>${i.name} × ${i.qty}</span><span>$${(i.price*i.qty).toLocaleString()}</span></div>`
   ).join('')+(discount>0?`<div style="color:var(--amber);padding:5px 0;font-size:12px">折扣（${note}）：-$${discount.toLocaleString()}</div>`:'');
 
-  document.getElementById('checkout-pay-type').value='normal';
+  document.getElementById('checkout-pay-type').value = linkedCase ? 'ltc_self' : 'normal';
   document.getElementById('checkout-person').innerHTML=DB.persons.map(p=>`<option>${p}</option>`).join('');
   updateCheckoutTotal();
   openModal('modal-checkout');
@@ -703,9 +747,10 @@ function updateCheckoutTotal() {
 }
 
 function doCheckout() {
+  const person=document.getElementById('checkout-person').value;
+  if(!person){showToast('請先到「設定」新增人員，才能結帳');return;}
   const subtotal=cart.reduce((s,i)=>s+i.price*i.qty,0);
   const {finalTotal,discount}=applyPromo(subtotal,cart);
-  const person=document.getElementById('checkout-person').value;
   const type=document.getElementById('checkout-pay-type').value;
   const selfPay=Math.ceil(finalTotal*0.3);
   const govPay=finalTotal-selfPay;
@@ -717,17 +762,23 @@ function doCheckout() {
   if(type==='ltc_self'){collected=selfPay;payType='ltc_self';payLabel='長照個案自付30%';}
   else if(type==='ltc_gov'){collected=govPay;payType='ltc_gov';payLabel='長照政府補助70%';}
 
+  const idLabel={price:'一般戶',priceMid:'中低收入戶',priceLow:'低收入戶'};
+  const linkedCase = activeCaseId ? DB.cases.find(c=>c.id===activeCaseId) : null;
   const order={
     id:orderId,time:now,items:[...cart],subtotal,discount,total:finalTotal,
     person,returned:false,
     payType,payLabel,collected,selfPay,govPay,
     isLTC:type!=='normal',
+    identity:identityField,identityLabel:idLabel[identityField]||'一般戶',
+    ltcCaseId:linkedCase?linkedCase.id:null,
+    ltcCaseName:linkedCase?linkedCase.name:null,
   };
   DB.sales.push(order);
   cart.forEach(item=>{const p=DB.products.find(x=>x.id===item.id);if(p)p.stock-=item.qty;});
-  addOpLog(person,`結帳[${payLabel}] 訂單${orderId} 收款$${collected.toLocaleString()}`);
+  addOpLog(person,`結帳[${payLabel}] 訂單${orderId} 收款$${collected.toLocaleString()}${linkedCase?'｜個案：'+linkedCase.name:''}`);
   save(DB);
   cart=[];
+  activeCaseId=null;
   closeModal('modal-checkout');
   renderProducts();
   checkStockAlerts();
@@ -801,24 +852,23 @@ function showCaseDetail(id) {
   const c=DB.cases.find(x=>x.id===id);
   if(!c)return;
   const caseOrders=DB.sales.filter(o=>o.ltcCaseId===id&&!o.returned);
-  const totalSelf=caseOrders.reduce((s,o)=>s+o.selfPay,0);
-  const totalSub=caseOrders.reduce((s,o)=>s+o.subsidy,0);
+  const totalSelf=caseOrders.reduce((s,o)=>s+(o.selfPay||0),0);
+  const totalGov=caseOrders.reduce((s,o)=>s+(o.govPay||0),0);
   document.getElementById('case-detail-card').style.display='block';
   document.getElementById('case-detail-title').textContent=`👤 ${c.name} 的消費記錄`;
   document.getElementById('case-detail-body').innerHTML=`
     <div class="grid3" style="margin-bottom:12px">
       <div class="stat-box"><div class="stat-val" style="font-size:18px">第${c.level}級</div><div class="stat-label">長照等級</div></div>
-      <div class="stat-box"><div class="stat-val" style="font-size:18px">$${totalSelf.toLocaleString()}</div><div class="stat-label">累計自付</div></div>
-      <div class="stat-box"><div class="stat-val" style="font-size:18px">$${totalSub.toLocaleString()}</div><div class="stat-label">累計補助</div></div>
+      <div class="stat-box"><div class="stat-val" style="font-size:18px">$${totalSelf.toLocaleString()}</div><div class="stat-label">累計自付額</div></div>
+      <div class="stat-box"><div class="stat-val" style="font-size:18px">$${totalGov.toLocaleString()}</div><div class="stat-label">累計補助額</div></div>
     </div>
-    <table><thead><tr><th>日期</th><th>商品</th><th>總額</th><th>自付30%</th><th>補助70%</th></tr></thead>
+    <table><thead><tr><th>日期</th><th>商品</th><th>付款方式</th><th>實收金額</th></tr></thead>
     <tbody>${caseOrders.length?[...caseOrders].reverse().map(o=>
       `<tr><td>${new Date(o.time).toLocaleDateString()}</td>
        <td>${o.items.map(i=>i.name+'×'+i.qty).join('、')}</td>
-       <td>$${o.total.toLocaleString()}</td>
-       <td style="color:var(--blue);font-weight:700">$${o.selfPay.toLocaleString()}</td>
-       <td>$${o.subsidy.toLocaleString()}</td></tr>`).join('')
-    :'<tr><td colspan="5" style="text-align:center;color:var(--text2)">尚無消費記錄</td></tr>'}</tbody></table>`;
+       <td><span class="badge badge-blue" style="font-size:11px">${o.payLabel||''}</span></td>
+       <td style="color:var(--blue);font-weight:700">$${(o.collected??0).toLocaleString()}</td></tr>`).join('')
+    :'<tr><td colspan="4" style="text-align:center;color:var(--text2)">尚無消費記錄</td></tr>'}</tbody></table>`;
 }
 
 function openCaseModal(id) {
@@ -857,11 +907,14 @@ function deleteCase(id){
   save(DB);renderCases();
 }
 
+let activeCaseId = null; // tracks which case (if any) this checkout is linked to
+
 function startLTCFromCase(id){
   const c=DB.cases.find(x=>x.id===id);
   if(!c)return;
+  activeCaseId = id;
   showPage('sale');
-  showToast('♿ '+c.name+'（第'+c.level+'級）— 結帳時選「長照個案自付30%」');
+  showToast('♿ 已選定個案：'+c.name+'（第'+c.level+'級）— 加入商品後結帳選「長照」');
 }
 
 // ══════════════════════════════════════════
@@ -899,6 +952,7 @@ function doAdjust(){
   const qty=parseInt(document.getElementById('adjust-qty').value);
   const reason=document.getElementById('adjust-reason').value;
   const person=document.getElementById('adjust-person').value;
+  if(!person){showToast('請先到「設定」新增人員');return;}
   if(isNaN(qty)){showToast('請輸入數量');return;}
   const p=DB.products.find(x=>x.id===pid);if(!p)return;
   const before=p.stock;p.stock=Math.max(0,p.stock+qty);
@@ -973,7 +1027,7 @@ function renderReport() {
   document.getElementById('ltc-log-tbody').innerHTML=[...ltcRange].reverse().map(o=>{
     const badge=o.payType==='ltc_self'?'♿ 個案自付30%':'🏛 政府補助70%';
     return `<tr><td>${new Date(o.time).toLocaleDateString()}</td>
-     <td><span class="badge badge-blue" style="font-size:11px">${badge}</span></td>
+     <td><span class="badge badge-blue" style="font-size:11px">${badge}</span>${o.ltcCaseName?' '+o.ltcCaseName:''}</td>
      <td>$${o.total.toLocaleString()}</td>
      <td style="color:var(--blue);font-weight:700">$${(o.collected??0).toLocaleString()}</td>
      <td>$${o.selfPay.toLocaleString()}</td>
@@ -984,9 +1038,35 @@ function renderReport() {
 
 function renderOpLog(){
   document.getElementById('op-log-area').style.display='block';
-  document.getElementById('op-log-tbody').innerHTML=[...DB.oplog].reverse().slice(0,100).map(l=>
+
+  const personSel=document.getElementById('oplog-person');
+  if(!personSel.dataset.filled){
+    personSel.innerHTML='<option value="">全部人員</option>'+DB.persons.map(p=>`<option>${p}</option>`).join('');
+    personSel.dataset.filled='1';
+  }
+
+  const startEl=document.getElementById('oplog-start');
+  const endEl=document.getElementById('oplog-end');
+  const today=new Date().toISOString().slice(0,10);
+  if(!startEl.value) startEl.value=today.slice(0,8)+'01';
+  if(!endEl.value) endEl.value=today;
+  const start=startEl.value, end=endEl.value;
+  const person=personSel.value;
+
+  let logs=DB.oplog.filter(l=>l.time.slice(0,10)>=start&&l.time.slice(0,10)<=end);
+  if(person) logs=logs.filter(l=>l.person===person);
+
+  document.getElementById('op-log-tbody').innerHTML=[...logs].reverse().slice(0,300).map(l=>
     `<tr><td>${new Date(l.time).toLocaleString('zh-TW',{hour12:false}).slice(0,-3)}</td><td>${l.person}</td><td>${l.action}</td></tr>`
-  ).join('')||'<tr><td colspan="3">無紀錄</td></tr>';
+  ).join('')||'<tr><td colspan="3" style="text-align:center;color:var(--text2)">查無紀錄</td></tr>';
+}
+
+function resetOpLogFilter(){
+  const today=new Date().toISOString().slice(0,10);
+  document.getElementById('oplog-start').value=today.slice(0,8)+'01';
+  document.getElementById('oplog-end').value=today;
+  document.getElementById('oplog-person').value='';
+  renderOpLog();
 }
 
 function exportBackup(){
@@ -1056,7 +1136,7 @@ function renderSettings(){
   ).join('');
 
   document.getElementById('settings-product-tbody').innerHTML=DB.products.map(p=>
-    `<tr><td>${p.name}</td><td>${p.cat}</td><td>$${p.price}</td><td>${p.stock}</td>
+    `<tr><td>${p.name}</td><td>${p.cat}</td><td>$${p.price}</td><td>$${p.priceMid??p.price}</td><td>$${p.priceLow??p.price}</td><td>${p.stock}</td>
      <td><span class="badge ${p.hidden?'badge-gray':'badge-green'}">${p.hidden?'隱藏':'顯示'}</span></td>
      <td style="display:flex;gap:4px;flex-wrap:wrap">
        <button class="btn btn-outline btn-sm" onclick="openProductModal(${p.id})">編輯</button>
@@ -1097,10 +1177,19 @@ function addCategory(){const v=document.getElementById('new-cat').value.trim();i
 function removeCategory(c){if(!confirm('確定刪除分類「'+c+'」？'))return;DB.categories=DB.categories.filter(x=>x!==c);save(DB);renderSettings();}
 function saveThresholds(){DB.thresholds.red=parseInt(document.getElementById('thresh-red').value)||3;DB.thresholds.yellow=parseInt(document.getElementById('thresh-yellow').value)||8;save(DB);showToast('警戒值已儲存');renderSettings();}
 
+function syncPriceDefaults(){
+  // If mid/low are empty, default them to match the general price (only when adding new)
+  const isNew = !document.getElementById('edit-product-id').value;
+  if(!isNew) return;
+  const v = document.getElementById('edit-product-price').value;
+  document.getElementById('edit-product-price-mid').value = v;
+  document.getElementById('edit-product-price-low').value = v;
+}
+
 function openProductModal(id){
   document.getElementById('edit-product-cat').innerHTML=DB.categories.map(c=>`<option>${c}</option>`).join('');
-  if(id){const p=DB.products.find(x=>x.id===id);document.getElementById('product-modal-title').textContent='編輯品項';document.getElementById('edit-product-id').value=p.id;document.getElementById('edit-product-name').value=p.name;document.getElementById('edit-product-cat').value=p.cat;document.getElementById('edit-product-price').value=p.price;document.getElementById('edit-product-stock').value=p.stock;}
-  else{document.getElementById('product-modal-title').textContent='新增品項';document.getElementById('edit-product-id').value='';document.getElementById('edit-product-name').value='';document.getElementById('edit-product-price').value='';document.getElementById('edit-product-stock').value='0';}
+  if(id){const p=DB.products.find(x=>x.id===id);document.getElementById('product-modal-title').textContent='編輯品項';document.getElementById('edit-product-id').value=p.id;document.getElementById('edit-product-name').value=p.name;document.getElementById('edit-product-cat').value=p.cat;document.getElementById('edit-product-price').value=p.price;document.getElementById('edit-product-price-mid').value=p.priceMid??p.price;document.getElementById('edit-product-price-low').value=p.priceLow??p.price;document.getElementById('edit-product-stock').value=p.stock;}
+  else{document.getElementById('product-modal-title').textContent='新增品項';document.getElementById('edit-product-id').value='';document.getElementById('edit-product-name').value='';document.getElementById('edit-product-price').value='';document.getElementById('edit-product-price-mid').value='';document.getElementById('edit-product-price-low').value='';document.getElementById('edit-product-stock').value='0';}
   openModal('modal-product');
 }
 function saveProduct(){
@@ -1108,10 +1197,14 @@ function saveProduct(){
   const name=document.getElementById('edit-product-name').value.trim();
   const cat=document.getElementById('edit-product-cat').value;
   const price=parseFloat(document.getElementById('edit-product-price').value);
+  const priceMid=parseFloat(document.getElementById('edit-product-price-mid').value);
+  const priceLow=parseFloat(document.getElementById('edit-product-price-low').value);
   const stock=parseInt(document.getElementById('edit-product-stock').value);
   if(!name||isNaN(price)){showToast('請填寫完整資料');return;}
-  if(id){const p=DB.products.find(x=>x.id==id);Object.assign(p,{name,cat,price,stock});}
-  else DB.products.push({id:DB.nextId++,name,cat,price,stock,hidden:false});
+  const finalMid=isNaN(priceMid)?price:priceMid;
+  const finalLow=isNaN(priceLow)?price:priceLow;
+  if(id){const p=DB.products.find(x=>x.id==id);Object.assign(p,{name,cat,price,priceMid:finalMid,priceLow:finalLow,stock});}
+  else DB.products.push({id:DB.nextId++,name,cat,price,priceMid:finalMid,priceLow:finalLow,stock,hidden:false});
   save(DB);closeModal('modal-product');renderSettings();showToast('品項已儲存');
 }
 function toggleProduct(id){const p=DB.products.find(x=>x.id===id);p.hidden=!p.hidden;save(DB);renderSettings();}
